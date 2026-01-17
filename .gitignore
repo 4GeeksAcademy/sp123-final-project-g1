@@ -80,5 +80,6 @@ database.database
 database.db
 diagram.png
 __pycache__/
-
 VITE_BACKEND_URL
+
+
