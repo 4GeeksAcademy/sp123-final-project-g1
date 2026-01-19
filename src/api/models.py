@@ -33,8 +33,8 @@ class Users(db.Model):
             "is_active": self.is_active,
             "people": self.people.serialize() if self.people else None
         }
-      
-      
+
+
 class People(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -74,8 +74,9 @@ class People(db.Model):
             "genres": [g.serialize() for g in self.genres],
             "instruments": [i.serialize() for i in self.instruments]
         }
-      
-      
+# ---------------------------------------------------------
+# GENRES
+# ---------------------------------------------------------
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
@@ -103,8 +104,9 @@ class GenrePeople(db.Model):
             "genre_id": self.genre_id,
             "genre": self.genre.serialize() if self.genre else None
         }
-      
-      
+# ---------------------------------------------------------
+# BANDS
+# ---------------------------------------------------------
 class Bands(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
@@ -121,8 +123,6 @@ class Bands(db.Model):
             "owner_id": self.owner_id,
             "genres": [g.serialize() for g in self.genres]
         }
-      
-      
 class GenreBands(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     band_id = db.Column(db.Integer, db.ForeignKey('bands.id'))
@@ -138,8 +138,9 @@ class GenreBands(db.Model):
             "genre_id": self.genre_id,
             "genre": self.genre.serialize() if self.genre else None
         }
-      
-      
+# ---------------------------------------------------------
+# INSTRUMENTS
+# ---------------------------------------------------------
 class Instrumentos(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
@@ -151,8 +152,6 @@ class Instrumentos(db.Model):
             "id": self.id,
             "name": self.name
         }
-      
-      
 class InstrumentPeople(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     people_id = db.Column(db.Integer, db.ForeignKey('people.id'))
