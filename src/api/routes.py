@@ -29,6 +29,7 @@ def get_all_users():
 @users_api.route('/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = Users.query.get(user_id)
+
     if not user:
         return jsonify({"error": "User not found"}), 404
     return jsonify(user.serialize()), 200
@@ -41,16 +42,15 @@ def create_user():
     if not data.get('email') or not data.get('password'):
         return jsonify({"error": "Email and password are required"}), 400
 
-    user = Users(
-        email=data.get('email'),
-        password=data.get('password'),
-        photo_url=data.get('photo_url'),
-        background=data.get('background'),
-        canción_url=data.get('canción_url'),
-        alias=data.get('alias'),
-        latitude=data.get('latitude'),
-        longitude=data.get('longitude'),
-        is_active=data.get('is_active', True)
+    user = Users( email=data.get('email'),
+                  password=data.get('password'),
+                  photo_url=data.get('photo_url'),
+                  background=data.get('background'),
+                  canción_url=data.get('canción_url'),
+                  alias=data.get('alias'),
+                  latitude=data.get('latitude'),
+                  longitude=data.get('longitude'),
+                  is_active=data.get('is_active', True)
     )
     db.session.add(user)
     db.session.commit()
@@ -61,6 +61,7 @@ def create_user():
 @users_api.route('/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
     user = Users.query.get(user_id)
+
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -82,6 +83,7 @@ def update_user(user_id):
 @users_api.route('/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     user = Users.query.get(user_id)
+    
     if not user:
         return jsonify({"error": "User not found"}), 404
 
