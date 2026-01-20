@@ -20,13 +20,13 @@ def handle_hello():
 
 users_api = Blueprint('users_api', __name__)
 
-@users_api.route('/', methods=['GET'])
+@users_api.route('/users', methods=['GET'])
 def get_all_users():
     users = Users.query.all()
     return jsonify([u.serialize() for u in users]), 200
 
 
-@users_api.route('/<int:user_id>', methods=['GET'])
+@users_api.route('/user/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = Users.query.get(user_id)
 
@@ -35,7 +35,7 @@ def get_user(user_id):
     return jsonify(user.serialize()), 200
 
 
-@users_api.route('/', methods=['POST'])
+@users_api.route('/users', methods=['POST'])
 def create_user():
     data = request.json
 
@@ -58,7 +58,7 @@ def create_user():
     return jsonify(user.serialize()), 201
 
 
-@users_api.route('/<int:user_id>', methods=['PUT'])
+@users_api.route('user/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
     user = Users.query.get(user_id)
 
@@ -80,7 +80,7 @@ def update_user(user_id):
     return jsonify(user.serialize()), 200
 
 
-@users_api.route('/<int:user_id>', methods=['DELETE'])
+@users_api.route('user/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     user = Users.query.get(user_id)
     
