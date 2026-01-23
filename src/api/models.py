@@ -20,6 +20,7 @@ class Users(db.Model):
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f'<User {self.id} - {self.email}>'
