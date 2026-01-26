@@ -123,7 +123,6 @@ def users():
 
 
 @api.route('/users/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
-@jwt_required()
 def user(user_id):
     response_body = {}
     row = db.session.execute(db.select(Users).where(Users.id == user_id)).scalar()
@@ -181,7 +180,6 @@ def people():
 
 
 @api.route('/people/<int:people_id>', methods=['GET', 'PUT', 'DELETE'])
-@jwt_required()
 def person(people_id):
     response_body = {}
     row = db.session.execute(db.select(People).where(People.id == people_id)).scalar()
@@ -231,7 +229,6 @@ def genres():
 
 
 @api.route('/genres/<int:genre_id>', methods=['GET', 'PUT', 'DELETE'])
-@jwt_required()
 def genre(genre_id):
     response_body = {}
     row = db.session.execute(db.select(Genre).where(Genre.id == genre_id)).scalar()
@@ -261,7 +258,6 @@ def genre(genre_id):
 # =========================================================
 
 @api.route('/genre-people', methods=['GET', 'POST'])
-@jwt_required()
 def genre_people():
     response_body = {}
     if request.method == 'GET':
@@ -317,7 +313,6 @@ def bands():
 
 
 @api.route('/bands/<int:band_id>', methods=['GET', 'PUT', 'DELETE'])
-@jwt_required()
 def band(band_id):
     response_body = {}
     row = db.session.execute(db.select(Bands).where(Bands.id == band_id)).scalar()
@@ -349,7 +344,6 @@ def band(band_id):
 # =========================================================
 
 @api.route('/genre-bands', methods=['GET', 'POST'])
-@jwt_required()
 def genre_bands():
     response_body = {}
     if request.method == 'GET':
@@ -424,7 +418,6 @@ def instrument(instrument_id):
 # =========================================================
 
 @api.route('/instrument-people', methods=['GET', 'POST'])
-@jwt_required()
 def instrument_people():
     response_body = {}
     if request.method == 'GET':
