@@ -21,23 +21,21 @@ class Users(db.Model):
     longitude = db.Column(db.Float)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
-
     def __repr__(self):
         return f'<User {self.id} - {self.email}>'
-    
     def serialize(self):
-        return {"id": self.id,
-                "email": self.email,
-                "photo_url": self.photo_url,
-                "background": self.background,
-                "song_url": self.song_url,
-                "alias": self.alias,
-                "latitude": self.latitude,
-                "longitude": self.longitude,
-                "is_active": self.is_active,
-                "people_to": self.people_to.serialize() if self.people_to else None}
-    
+     return {"id": self.id,
+            "email": self.email,
+            "photo_url": self.photo_url,
+            "background": self.background,
+            "song_url": self.song_url,
+            "alias": self.alias,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "is_active": self.is_active,
+            "is_admin": self.is_admin}
 
+    
 class People(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
