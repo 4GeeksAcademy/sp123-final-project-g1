@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export const LoginSignup = () => {
-    const [mode, setMode] = useState("login"); // "login" o "signup"
+    const [mode, setMode] = useState("login");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [alias, setAlias] = useState("");
     const [error, setError] = useState("");
+
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -14,15 +19,18 @@ export const LoginSignup = () => {
         const endpoint = mode === "login" ? "/login" : "/signup";
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api${endpoint}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(
-                    mode === "login"
-                        ? { email, password }
-                        : { email, password, alias }
-                ),
-            });
+            const res = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api${endpoint}`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(
+                        mode === "login"
+                            ? { email, password }
+                            : { email, password, alias }
+                    ),
+                }
+            );
 
             const data = await res.json();
 
@@ -30,15 +38,15 @@ export const LoginSignup = () => {
                 setError(data.message || "Error");
                 return;
             }
+
             if (mode === "login") {
-                localStorage.setItem("token", data.access_token);
-                localStorage.setItem("user", JSON.stringify(data.results));
+                login(data.results, data.access_token);
+                navigate("/profile");
+                return;
             }
-            alert(
-                mode === "login"
-                    ? "Sesión iniciada correctamente"
-                    : "Usuario creado correctamente"
-            );
+
+            alert("Usuario creado correctamente. Ahora puedes iniciar sesión.");
+            setMode("login");
 
         } catch (err) {
             setError("Error de conexión con el servidor");
