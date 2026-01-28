@@ -21,25 +21,28 @@ def login():
     response_body = {}
     email = request.json.get("email", None)
     password = request.json.get("password", None)
-
     if not email or not password:
         response_body["message"] = "Email and password required"
-        return response_body, 400
-    row = db.session.execute(db.select(Users).where(
-                             Users.email == email,
-                             Users.is_active == True)).scalar()
+        return jsonify(response_body), 400
+    row = db.session.execute(
+        db.select(Users).where(Users.email == email,
+                               Users.is_active == True)
+    ).scalar()
     if not row or row.password != password:
         response_body["message"] = "Bad username or password"
-        return response_body, 401
+        return jsonify(response_body), 401
     user = row.serialize()
     claims = {"user_id": user["id"],
               "is_active": user["is_active"],
               "is_admin": user.get("is_admin", False)}
     response_body["message"] = "User logged, ok"
     response_body["results"] = user
-    response_body["access_token"] = create_access_token(identity=email, additional_claims=claims)
+    response_body["access_token"] = create_access_token(
+        identity=email,
+        additional_claims=claims
+    )
 
-    return response_body, 200
+    return jsonify(response_body), 200
 
 
 @api.route("/signup", methods=["POST"])
@@ -47,14 +50,13 @@ def signup():
     response_body = {}
     email = request.json.get("email")
     password = request.json.get("password")
-
     if not email or not password:
         response_body["message"] = "Email and password required"
-        return response_body, 400
+        return jsonify(response_body), 400
     exists = db.session.execute(db.select(Users).where(Users.email == email)).scalar()
     if exists:
         response_body["message"] = "User already exists"
-        return response_body, 400
+        return jsonify(response_body), 400
     user = Users(email=email,
                  password=password,
                  alias=request.json.get("alias"),
@@ -63,14 +65,13 @@ def signup():
                  song_url=request.json.get("song_url"),
                  latitude=request.json.get("latitude"),
                  longitude=request.json.get("longitude"),
-                 is_active=True)
-    
+                 is_active=True )
     db.session.add(user)
     db.session.commit()
     response_body["message"] = "User Created"
     response_body["results"] = user.serialize()
 
-    return response_body, 201
+    return jsonify(response_body), 201
 
 
 @api.route("/profile", methods=["GET"])
@@ -88,8 +89,6 @@ def profile():
     response_body["claims"] = claims
 
     return response_body, 200
-
-
 
 
 @api.route('/hello', methods=['POST', 'GET'])
