@@ -14,7 +14,7 @@ export const MusicMap = () => {
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: "mapbox://styles/guerrero1599/cmkybpiam000301qw3a4herym",
       center: [0, 20],
       zoom: 2,
     });
@@ -29,7 +29,7 @@ export const MusicMap = () => {
       ref={mapContainer}
       style={{
         width: "100%",
-        height: "500px",
+        height: "800px",
         borderRadius: "12px",
         overflow: "hidden",
       }}

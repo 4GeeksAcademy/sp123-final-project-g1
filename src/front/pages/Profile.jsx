@@ -16,7 +16,7 @@ export const Profile = () => {
                     border: "1px solid rgba(255,255,255,0.15)",
                     borderRadius: "16px",
                     padding: "2rem",
-                    color: "white",
+                    color: "black",
                 }}
             >
                 <h2 className="text-center mb-4 fw-semibold">
@@ -27,7 +27,7 @@ export const Profile = () => {
                 <p><strong>Alias:</strong> {user?.alias || "Sin alias"}</p>
 
                 <button
-                    className="btn btn-outline-light w-100 mt-4"
+                    className="btn btn-outline-dark w-100 mt-4"
                     onClick={logout}
                 >
                     Cerrar sesión
