@@ -450,3 +450,53 @@ def instrument_people_item(item_id):
     return response_body, 200           
 
 
+
+@api.route('/user/location', methods=['POST'])
+def save_location():
+    data = request.json
+    user = Users.query.get(data["user_id"])
+    user.latitude = data["latitude"]
+    user.longitude = data["longitude"]
+    db.session.commit()
+    return jsonify({"msg": "Location saved"}), 200
+
+
+@api.route('/map/people', methods=['GET'])
+def map_people():
+    rows = db.session.execute(
+        db.select(People)
+        .join(Users)
+        .where(
+            Users.latitude.isnot(None),
+            Users.longitude.isnot(None)
+        )
+    ).scalars().all()
+
+    features = []
+
+    for person in rows:
+        user = person.user_to  
+
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    user.longitude,
+                    user.latitude
+                ]
+            },
+            "properties": {
+                "id": person.id,
+                "name": f"{person.name} {person.surname}",
+                "roles": {
+                    "musician": person.is_musician,
+                    "dj": person.is_dj,
+                    "producer": person.is_producer}}})
+
+    return jsonify({
+        "type": "FeatureCollection",
+        "features": features
+    }), 200
+
+
