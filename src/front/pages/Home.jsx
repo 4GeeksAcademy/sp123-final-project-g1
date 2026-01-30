@@ -33,30 +33,11 @@ export const Home = () => {
   return (
     <div className="container mt-5">
       
-      {/* HEADER */}
-      <div className="text-center mb-5">
-        <h1 className="display-4">Hello Rigo!!</h1>
-        <img
-          src={rigoImageUrl}
-          className="img-fluid rounded-circle mb-3"
-          alt="Rigo Baby"
-          width="150"
-        />
 
-        <div className="alert alert-info">
-          {store.message ? (
-            <span>{store.message}</span>
-          ) : (
-            <span className="text-danger">
-              Loading message from the backend (make sure your python 🐍 backend is running)...
-            </span>
-          )}
-        </div>
-      </div>
 
       {/* MAPA */}
       <section>
-        <h2 className="mb-3 text-center">Mapa musical global</h2>
+        <h2 className="pt-3 mb-3 text-center">Mapa musical global</h2>
         <MusicMap />
       </section>
 
