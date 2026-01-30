@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 export const Navbar = () => {
 
 	return (
-		<nav className="navbar navbar-expand-lg fixed-top" style={{ background: "linear-gradient(to bottom, rgba(128,0,255,0.85), rgba(128,0,255,0))", backdropFilter: "blur(6px)" }}>
+		<nav className="navbar navbar-expand-lg fixed-top" style={{ background: "rgba(146, 142, 149, 0.85)" }}>
 			<div className="container-fluid px-4">
-				<Link className="navbar-brand text-white fw-semibold" to="/" style={{ letterSpacing: "0.15em" }}> SONORA </Link>
+				<Link className="navbar-brand text-dark fw-semibold" to="/" style={{ letterSpacing: "0.15em" }}> SONORA </Link>
 					<div className="collapse navbar-collapse" id="sonoraNav">
 						<ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-4">
 							<li className="nav-item">
