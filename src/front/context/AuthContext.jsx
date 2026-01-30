@@ -1,34 +1,60 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
-  });
+    const [user, setUser] = useState(null);
+    const [people, setPeople] = useState(null);
+    const [token, setToken] = useState(null);
 
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        const storedPeople = localStorage.getItem("people");
+        const storedToken = localStorage.getItem("token");
 
-  const login = (userData, tokenData) => {
-    setUser(userData);
-    setToken(tokenData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", tokenData);
-  };
+        if (storedUser && storedToken) {
+            setUser(JSON.parse(storedUser));
+            setToken(storedToken);
+        }
+        if (storedPeople) {
+            setPeople(JSON.parse(storedPeople));
+        }
+    }, []);
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-  };
+    const login = (userData, tokenData, peopleData) => {
+        setUser(userData);
+        setToken(tokenData);
+        setPeople(peopleData || null);
 
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("token", tokenData);
+        localStorage.setItem("people", JSON.stringify(peopleData || null));
+    };
+
+    const logout = () => {
+        setUser(null);
+        setToken(null);
+        setPeople(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        localStorage.removeItem("people");
+    };
+
+    return (
+        <AuthContext.Provider
+            value={{
+                user,
+                people,
+                token,
+                login,
+                logout,
+                setUser,   // 👈 IMPORTANTE
+                setPeople  // 👈 IMPORTANTE
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => useContext(AuthContext);
