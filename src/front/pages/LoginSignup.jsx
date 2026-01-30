@@ -3,90 +3,98 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export const LoginSignup = () => {
-    const [mode, setMode] = useState("login");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [alias, setAlias] = useState("");
-    const [error, setError] = useState("");
-
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    async function handleSubmit(e) {
+    const [mode, setMode] = useState("login");
+    const [form, setForm] = useState({
+        email: "",
+        password: "",
+        alias: ""
+    });
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setError("");
 
-        const endpoint = mode === "login" ? "/login" : "/signup";
+        const url =
+            mode === "login"
+                ? `${import.meta.env.VITE_BACKEND_URL}/api/login`
+                : `${import.meta.env.VITE_BACKEND_URL}/api/signup`;
 
-        try {
-            const res = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/api${endpoint}`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(
-                        mode === "login"
-                            ? { email, password }
-                            : { email, password, alias }
-                    ),
-                }
-            );
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form)
+        });
 
-            const data = await res.json();
+        const data = await res.json();
+        console.log("DATA:", data);
 
-            if (!res.ok) {
-                setError(data.message || "Error");
-                return;
-            }
-
-            if (mode === "login") {
-                login(data.results, data.access_token);
-                navigate("/profile");
-                return;
-            }
-
-            alert("Usuario creado correctamente. Ahora puedes iniciar sesión.");
-            setMode("login");
-
-        } catch (err) {
-            setError("Error de conexión con el servidor");
+        if (!res.ok) {
+            alert(data.message || "Error");
+            return;
         }
-    }
+
+        if (mode === "login") {
+            login(data.results, data.access_token, data.people);
+            navigate("/profile");
+            return;
+        }
+
+        if (mode === "signup") {
+            alert("Cuenta creada. Ahora inicia sesión.");
+            setMode("login");
+        }
+    };
 
     return (
-        <div className="d-flex justify-content-center" style={{ marginTop: "140px" }}>
-            <div style={{width: "380px",background: "rgba(255,255,255,0.08)",backdropFilter: "blur(12px)",border: "1px solid rgba(255,255,255,0.15)",borderRadius: "16px",}}>
-                <div className="card-body p-4">
-                    <h5 className="text-center mb-4 fw-semibold">
-                        {mode === "login"
-                            ? "Login to SONORA"
-                            : "Create your SONORA account"}
-                    </h5>
-                    <form onSubmit={handleSubmit}>
-                        <div className="mb-3">
-                            <input type="email" className="form-control bg-transparent border-light"placeholder="Email"value={email} onChange={(e) => setEmail(e.target.value)} required/>
-                        </div>
-                        <div className="mb-4">
-                            <input type="password" className="form-control bg-transparent border-light" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required/>
-                        </div>
-                        {mode === "signup" && (
-                            <div className="mb-4">
-                                <input type="text" className="form-control bg-transparent text-white border-light" placeholder="Alias" value={alias} onChange={(e) => setAlias(e.target.value)}/>
-                            </div>)}
-                        <button type="submit" className="text-dark btn btn-outline-light w-100">
-                            {mode === "login" ? "Login" : "Signup"}
-                        </button>
-                    </form>
-                    {error && (
-                        <p className="text-danger text-center mt-3">{error}</p>)}
-                        <p className="text-center mt-3" style={{ cursor: "pointer", color: "#ccc" }}
-                        onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-                        {mode === "login"
-                            ? "¿No tienes cuenta? Crear una"
-                            : "¿Ya tienes cuenta? Inicia sesión"}
-                    </p>
-                </div>
-            </div>
+        <div className="container py-5 text-dark mt-5">
+            <h2 className="mb-4">{mode === "login" ? "Iniciar sesión" : "Crear cuenta"}</h2>
+
+            <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
+                {mode === "signup" && (
+                    <input
+                        type="text"
+                        name="alias"
+                        placeholder="Alias"
+                        className="form-control"
+                        onChange={handleChange}
+                    />
+                )}
+
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    className="form-control"
+                    onChange={handleChange}
+                />
+
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Contraseña"
+                    className="form-control"
+                    onChange={handleChange}
+                />
+
+                <button className="btn btn-primary" type="submit">
+                    {mode === "login" ? "Entrar" : "Registrarse"}
+                </button>
+            </form>
+
+            <button
+                className="btn btn-link mt-3 text-dark"
+                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+            >
+                {mode === "login"
+                    ? "¿No tienes cuenta? Regístrate"
+                    : "¿Ya tienes cuenta? Inicia sesión"}
+            </button>
         </div>
     );
 };
