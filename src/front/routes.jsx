@@ -10,8 +10,9 @@ import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { LoginSignup } from "./pages/LoginSignup";
-import { Profile } from "./pages/Profile";              // <-- NUEVO
-import { ProtectedRoute } from "./context/ProtectedRoute"; // <-- NUEVO
+import { Profile } from "./pages/Profile";              
+import { ProtectedRoute } from "./context/ProtectedRoute";
+import { PublicProfile } from "./pages/PublicProfile";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -27,6 +28,10 @@ export const router = createBrowserRouter(
             <Route path="/demo" element={<Demo />} />
             <Route path="/loginsignup" element={<LoginSignup />} />
 
+            {/*PERFIL PÚBLICO*/}
+            <Route path="/u/:alias" element={<PublicProfile />} />
+
+            {/*PERFIL PRIVADO*/}
             <Route
                 path="/profile"
                 element={
