@@ -1,8 +1,7 @@
-// Import necessary components and functions from react-router-dom.
 import {
-    createBrowserRouter,
-    createRoutesFromElements,
-    Route,
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
 } from "react-router-dom";
 
 import { Layout } from "./pages/Layout";
@@ -10,37 +9,36 @@ import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { LoginSignup } from "./pages/LoginSignup";
-import { Profile } from "./pages/Profile";              
+import { Profile } from "./pages/Profile";
 import { ProtectedRoute } from "./context/ProtectedRoute";
 import { PublicProfile } from "./pages/PublicProfile";
+import { RegionPage } from "./pages/RegionPage";
 
 export const router = createBrowserRouter(
-    createRoutesFromElements(
+  createRoutesFromElements(
+    <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
 
-        <Route
-            path="/"
-            element={<Layout />}
-            errorElement={<h1>Not found!</h1>}
-        >
+      <Route path="/" element={<Home />} />
+      <Route path="/single/:theId" element={<Single />} />
+      <Route path="/demo" element={<Demo />} />
+      <Route path="/loginsignup" element={<LoginSignup />} />
 
-            <Route path="/" element={<Home />} />
-            <Route path="/single/:theId" element={<Single />} />
-            <Route path="/demo" element={<Demo />} />
-            <Route path="/loginsignup" element={<LoginSignup />} />
+      {/* PERFIL PÚBLICO */}
+      <Route path="/u/:alias" element={<PublicProfile />} />
 
-            {/*PERFIL PÚBLICO*/}
-            <Route path="/u/:alias" element={<PublicProfile />} />
+      {/* PERFIL PRIVADO */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
 
-            {/*PERFIL PRIVADO*/}
-            <Route
-                path="/profile"
-                element={
-                    <ProtectedRoute>
-                        <Profile />
-                    </ProtectedRoute>
-                }
-            />
+      {/* REGIÓN / PAÍS */}
+      <Route path="/region/:country/:city" element={<RegionPage />} />
 
-        </Route>
-    )
+    </Route>
+  )
 );
