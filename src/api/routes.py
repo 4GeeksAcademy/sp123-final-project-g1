@@ -449,16 +449,44 @@ def save_location():
 
 @api.route('/map/people', methods=['GET'])
 def map_people():
-    rows = db.session.execute(db.select(People).join(Users).where(Users.latitude.isnot(None),Users.longitude.isnot(None))).scalars().all()
+    rows = (
+        db.session.execute(
+            db.select(People)
+            .join(Users)
+            .where(
+                Users.latitude.isnot(None),
+                Users.longitude.isnot(None)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
     features = []
+
     for person in rows:
-        user = person.user_to  
+        user = person.user_to
+
         features.append({
             "type": "Feature",
-            "geometry": {"type": "Point","coordinates": [user.longitude, user.latitude]},
-            "properties": {"id": person.id, "name": f"{person.name} {person.surname}","roles": {"musician": person.is_musician,
-                                                                                                "dj": person.is_dj,
-                                                                                                "producer": person.is_producer}}})
+            "geometry": {
+                "type": "Point",
+                "coordinates": [user.longitude, user.latitude]
+            },
+            "properties": {
+                "id": person.id,
+                "name": person.name,
+                "roles": {
+                    "musician": person.is_musician,
+                    "dj": person.is_dj,
+                    "producer": person.is_producer,
+                    "teacher": person.is_teacher,
+                    "sound_tech": person.is_sound_tech
+                },
+                "city": user.city,
+                "country": user.country
+            }
+        })
 
     return jsonify({
         "type": "FeatureCollection",

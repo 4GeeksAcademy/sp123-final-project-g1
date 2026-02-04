@@ -19,6 +19,8 @@ class Users(db.Model):
     alias = db.Column(db.String(80))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
+    country = db.Column(db.String(80))
+    city = db.Column(db.String(80))
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     theme = db.Column(db.String(20), default="dark")
@@ -139,6 +141,17 @@ class Bands(db.Model):
                 "owner_id": self.owner_id,
                 "genres": [g.serialize() for g in self.genres]}
     
+    
+class Instruments(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    instrument_people = db.relationship('InstrumentPeople', backref='instrument', overlaps="instrument_id_to,instrument_to_IP")
+    def __repr__(self):
+        return f'<Instrument {self.name} - {self.id}>'
+    def serialize(self):
+        return {"id": self.id,
+                "name": self.name}
+    
 
 class InstrumentPeople(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -155,13 +168,5 @@ class InstrumentPeople(db.Model):
                 "instrument": self.instrument.serialize() if self.instrument else None}
     
 
-class Instruments(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    instrument_people = db.relationship('InstrumentPeople', backref='instrument', overlaps="instrument_id_to,instrument_to_IP")
-    def __repr__(self):
-        return f'<Instrument {self.name} - {self.id}>'
-    def serialize(self):
-        return {"id": self.id,
-                "name": self.name}
+
 
