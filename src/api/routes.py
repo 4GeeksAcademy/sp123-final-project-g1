@@ -555,3 +555,48 @@ def get_profile_song():
 
     return jsonify({"song_url": user.song_url}), 200
 
+
+@api.route("/update-photo", methods=["POST"])
+@jwt_required()
+def update_photo():
+    user_id = get_jwt()["user_id"]
+    user = Users.query.get(user_id)
+    if "photo" not in request.files:
+        return jsonify({"message": "No se envió ninguna imagen"}), 400
+    photo = request.files["photo"]
+    filename = f"user_{user_id}.jpg"
+    filepath = f"./src/static/profile_photos/{filename}"
+    photo.save(filepath)
+    user.photo_url = f"/static/profile_photos/{filename}"
+    db.session.commit()
+
+    return jsonify({"user": user.serialize()}), 200
+
+
+@api.route('/api/update-bio', methods=['POST'])
+@jwt_required()
+def update_bio():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    bio = data.get('bio', '')
+    people = People.query.filter_by(user_id=user_id).first()
+    if not people:
+        return jsonify({"msg": "People not found"}), 404
+    people.bio = bio
+    db.session.commit()
+
+    return jsonify({
+        "people": people.serialize()
+    }), 200
+
+
+@api.route('/public-profile/<alias>', methods=['GET'])
+def public_profile(alias):
+    user = Users.query.filter_by(alias=alias).first()
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+    people = People.query.filter_by(user_id=user.id).first()
+    return jsonify({
+        "user": user.serialize(),
+        "people": people.serialize() if people else None
+    }), 200
