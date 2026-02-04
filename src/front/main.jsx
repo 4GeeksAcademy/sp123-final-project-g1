@@ -7,6 +7,7 @@ import { StoreProvider } from './hooks/useGlobalReducer'
 import { BackendURL } from './components/BackendURL'
 import { AuthProvider } from "./context/AuthContext" 
 
+
 const Main = () => {
 
     if (!import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_BACKEND_URL === "")
