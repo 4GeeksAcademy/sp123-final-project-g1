@@ -449,49 +449,25 @@ def save_location():
 
 @api.route('/map/people', methods=['GET'])
 def map_people():
-    rows = (
-        db.session.execute(
-            db.select(People)
-            .join(Users)
-            .where(
-                Users.latitude.isnot(None),
-                Users.longitude.isnot(None)
-            )
-        )
-        .scalars()
-        .all()
-    )
-
+    rows = (db.session.execute(db.select(People).join(Users).where(Users.latitude.isnot(None),Users.longitude.isnot(None))).scalars().all())
     features = []
-
     for person in rows:
         user = person.user_to
-
         features.append({
             "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [user.longitude, user.latitude]
-            },
-            "properties": {
-                "id": person.id,
-                "name": person.name,
-                "roles": {
-                    "musician": person.is_musician,
-                    "dj": person.is_dj,
-                    "producer": person.is_producer,
-                    "teacher": person.is_teacher,
-                    "sound_tech": person.is_sound_tech
-                },
-                "city": user.city,
-                "country": user.country
-            }
-        })
+            "geometry": {"type": "Point",
+                         "coordinates": [user.longitude, user.latitude]},
+            "properties": {"id": person.id,
+                           "name": person.name,
+                           "roles": {"musician": person.is_musician,
+                                     "dj": person.is_dj,
+                                     "producer": person.is_producer,
+                                     "teacher": person.is_teacher,
+                                     "sound_tech": person.is_sound_tech},
+                           "city": user.city,
+                           "country": user.country}})
 
-    return jsonify({
-        "type": "FeatureCollection",
-        "features": features
-    }), 200
+    return jsonify({"type": "FeatureCollection","features": features}), 200
 
 
 @api.route("/update-background", methods=["POST"])
@@ -542,6 +518,7 @@ def set_profile_song():
         return jsonify({"message": "User not found"}), 404
     user.song_url = song_url
     db.session.commit()
+
     return jsonify({"message": "Profile song updated","song_url": song_url}), 200
 
 
@@ -585,9 +562,7 @@ def update_bio():
     people.bio = bio
     db.session.commit()
 
-    return jsonify({
-        "people": people.serialize()
-    }), 200
+    return jsonify({"people": people.serialize()}), 200
 
 
 @api.route('/public-profile/<alias>', methods=['GET'])
@@ -596,7 +571,39 @@ def public_profile(alias):
     if not user:
         return jsonify({"msg": "User not found"}), 404
     people = People.query.filter_by(user_id=user.id).first()
+
+    return jsonify({"user": user.serialize(),"people": people.serialize() if people else None}), 200
+
+
+@api.route('/api/update-instruments', methods=['POST'])
+@jwt_required()
+def update_instruments():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    instruments = data.get("instruments", [])
+    people = People.query.filter_by(user_id=user_id).first()
+    if not people:
+        return jsonify({"msg": "People not found"}), 404
+    InstrumentPeople.query.filter_by(people_id=people.id).delete()
+    for inst in instruments:
+        new_inst = InstrumentPeople(people_id=people.id,instrument_id=inst["instrument_id"],level=inst["level"])
+        db.session.add(new_inst)
+    db.session.commit()
+
+    return jsonify({"people": people.serialize()}), 200
+
+
+@api.route('/api/update-roles', methods=['POST'])
+@jwt_required()
+def update_roles():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    people = People.query.filter_by(user_id=user_id).first()
+    if not people:
+        return jsonify({"msg": "People not found"}), 404
+    for key, value in data.items():
+        if hasattr(people, key): setattr(people, key, value)
+    db.session.commit()
+
     return jsonify({
-        "user": user.serialize(),
-        "people": people.serialize() if people else None
-    }), 200
+        "people": people.serialize()}), 200

@@ -24,7 +24,6 @@ class Users(db.Model):
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     theme = db.Column(db.String(20), default="dark")
-    song_url = db.Column(db.String)
     def __repr__(self):
         return f'<User {self.id} - {self.email}>'
     def serialize(self):
