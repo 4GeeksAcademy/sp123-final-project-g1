@@ -11,7 +11,7 @@ export const Footer = () => {
           <span>{store.message}</span>
         ) : (
           <span>
-            Loading message from the backend (make sure your python 🐍 backend is running)...
+            Loading message from the backend (make sure your pythons 🐍 backend is running)...
           </span>
         )}
       </div>
