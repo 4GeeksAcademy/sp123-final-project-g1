@@ -24,7 +24,7 @@ export const router = createBrowserRouter(
       <Route path="/loginsignup" element={<LoginSignup />} />
 
       {/* PERFIL PÚBLICO */}
-      <Route path="/u/:alias" element={<PublicProfile />} />
+      <Route path="/public-profile/:alias" element={<PublicProfile />} />
 
       {/* PERFIL PRIVADO */}
       <Route
