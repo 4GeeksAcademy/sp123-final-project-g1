@@ -142,12 +142,10 @@ export const Profile = () => {
     <div
       className="py-5"
       style={{
-        marginTop: "90px",
         backgroundColor: user.background || "#121212",
         color: "#fff",
         minHeight: "100vh"
-      }}
-    >
+      }}>
       <h2 className="text-center mb-5">Mi Perfil</h2>
 
       <div className="container" style={{ maxWidth: "900px" }}>

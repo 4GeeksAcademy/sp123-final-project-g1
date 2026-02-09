@@ -2,14 +2,11 @@
 .region-page {
   min-height: 100vh;
   padding: 60px 40px;
-  background: radial-gradient(
-    circle at top,
-    #1a1f3c 0%,
-    #0b0f24 45%,
-    #050814 100%
-  );
   color: #e6e9ff;
-  font-family: "Inter", system-ui, sans-serif;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 
