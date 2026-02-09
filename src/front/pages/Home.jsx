@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import rigoImageUrl from "../assets/img/rigo-baby.jpg";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { MusicMap } from "../components/MusicMap.jsx";
+import "../styles/RegionPage.css";
 
 export const Home = () => {
   const { store, dispatch } = useGlobalReducer();
@@ -32,15 +32,10 @@ export const Home = () => {
 
   return (
     <div className="container mt-5">
-      
-
-
       {/* MAPA */}
-      <section>
-        <h2 className="pt-3 mb-3 text-center">Mapa musical global</h2>
+      <section className="region-page">
         <MusicMap />
       </section>
-
     </div>
   );
 };
