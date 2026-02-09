@@ -7,33 +7,41 @@ export const AuthProvider = ({ children }) => {
     const [people, setPeople] = useState(null);
     const [token, setToken] = useState(null);
 
+    // Función segura para parsear JSON
+    const safeParse = (value) => {
+        try {
+            return JSON.parse(value);
+        } catch {
+            return null;
+        }
+    };
+
+    // Cargar datos desde localStorage al iniciar
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        const storedPeople = localStorage.getItem("people");
+        const storedUser = safeParse(localStorage.getItem("user"));
+        const storedPeople = safeParse(localStorage.getItem("people"));
         const storedToken = localStorage.getItem("token");
 
-        if (storedUser && storedToken) {
-            setUser(JSON.parse(storedUser));
-            setToken(storedToken);
-        }
-
-        if (storedPeople) {
-            setPeople(JSON.parse(storedPeople));
-        }
+        if (storedToken) setToken(storedToken);
+        if (storedUser) setUser(storedUser);
+        if (storedPeople) setPeople(storedPeople);
     }, []);
 
+    // Guardar user cuando cambie
     useEffect(() => {
         if (user) {
             localStorage.setItem("user", JSON.stringify(user));
         }
     }, [user]);
 
+    // Guardar people cuando cambie
     useEffect(() => {
         if (people) {
             localStorage.setItem("people", JSON.stringify(people));
         }
     }, [people]);
 
+    // Login: guardar todo
     const login = (userData, tokenData, peopleData) => {
         setUser(userData);
         setToken(tokenData);
@@ -44,6 +52,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("people", JSON.stringify(peopleData || null));
     };
 
+    // Logout: limpiar todo
     const logout = () => {
         setUser(null);
         setToken(null);

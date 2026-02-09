@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export const PublicProfile = () => {
     const { alias } = useParams();
+    const navigate = useNavigate();
+    const { user: loggedUser } = useAuth();
+
     const [user, setUser] = useState(null);
     const [people, setPeople] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Saber si este perfil es mío
+    const isOwner = loggedUser && loggedUser.alias === alias;
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -62,6 +69,18 @@ export const PublicProfile = () => {
         >
             <h2 className="text-center mb-5">{user.alias}</h2>
 
+            {/* BOTÓN AJUSTES (solo si es mi perfil) */}
+            {isOwner && (
+                <div className="text-center mb-4">
+                    <button
+                        className="btn btn-warning fw-bold"
+                        onClick={() => navigate("/profile")}
+                    >
+                        Ajustes
+                    </button>
+                </div>
+            )}
+
             <div
                 className="row justify-content-center"
                 style={{ maxWidth: "1100px", margin: "0 auto" }}
@@ -89,15 +108,15 @@ export const PublicProfile = () => {
                     <div className="mb-3">
                         <label className="form-label fw-bold">Rol</label>
                         <p className="form-control bg-dark text-light">
-                            {people?.is_musician && "Músico"}
-                            {people?.is_dj && "DJ"}
-                            {people?.is_singer && "Cantante"}
-                            {people?.is_composer && "Compositor"}
-                            {people?.is_teacher && "Profesor"}
-                            {people?.is_light_tech && "Técnico de luces"}
-                            {people?.is_sound_tech && "Técnico de sonido"}
-                            {people?.is_producer && "Productor"}
-                            {people?.is_fan && "Fan"}
+                            {people?.is_musician && "Músico "}
+                            {people?.is_dj && "DJ "}
+                            {people?.is_singer && "Cantante "}
+                            {people?.is_composer && "Compositor "}
+                            {people?.is_teacher && "Profesor "}
+                            {people?.is_light_tech && "Técnico de luces "}
+                            {people?.is_sound_tech && "Técnico de sonido "}
+                            {people?.is_producer && "Productor "}
+                            {people?.is_fan && "Fan "}
                         </p>
                     </div>
 
