@@ -24,7 +24,7 @@ export const Navbar = () => {
 						{/* Enlace al perfil público */}
 						{user && (
 							<li className="nav-item">
-								<Link className="nav-link text-white" to={`/u/${user.alias}`}>
+								<Link className="nav-link text-white" to={`/public-profile/${user.alias}`}>
 									Perfil
 								</Link>
 							</li>
