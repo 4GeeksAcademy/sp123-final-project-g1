@@ -95,18 +95,35 @@ def signup():
 @api.route("/profile", methods=["GET"])
 @jwt_required()
 def profile():
-    response_body = {}
-    identity = get_jwt_identity()
     claims = get_jwt()
-    row = db.session.execute(db.select(Users).where(Users.email == identity)).scalar()
-    if not row:
-        response_body["message"] = "Invalid token"
-        return response_body, 401
-    response_body["message"] = "Valid token"
-    response_body["results"] = row.serialize()
-    response_body["claims"] = claims
+    user_id = claims["user_id"]
 
-    return response_body, 200
+    user = Users.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    return jsonify(user.serialize()), 200
+
+@api.route("/profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+    claims = get_jwt()
+    user_id = claims["user_id"]
+
+    user = Users.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    data = request.get_json()
+
+    user.alias = data.get("alias", user.alias)
+    user.background = data.get("background", user.background)
+    user.theme = data.get("theme", user.theme)
+
+    db.session.commit()
+
+    return jsonify(user.serialize()), 200
+
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -508,31 +525,6 @@ def update_theme():
     return jsonify({"user": user.serialize()}), 200
 
 
-@api.route('/profile/song', methods=['PUT'])
-@jwt_required()
-def set_profile_song():
-    user_email = get_jwt_identity()
-    song_url = request.json.get("song_url")
-    user = db.session.execute(db.select(Users).where(Users.email == user_email)).scalar()
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-    user.song_url = song_url
-    db.session.commit()
-
-    return jsonify({"message": "Profile song updated","song_url": song_url}), 200
-
-
-@api.route('/profile/song', methods=['GET'])
-@jwt_required()
-def get_profile_song():
-    user_email = get_jwt_identity()
-    user = db.session.execute(db.select(Users).where(Users.email == user_email)).scalar()
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
-    return jsonify({"song_url": user.song_url}), 200
-
-
 @api.route("/update-photo", methods=["POST"])
 @jwt_required()
 def update_photo():
@@ -607,3 +599,27 @@ def update_roles():
 
     return jsonify({
         "people": people.serialize()}), 200
+
+
+@api.route("/profile/song", methods=["PUT"])
+@jwt_required()
+def update_profile_song():
+    claims = get_jwt()
+    user_id = claims["user_id"]
+
+    user = Users.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    data = request.get_json()
+    song_url = data.get("song_url")
+
+    if not song_url:
+        return jsonify({"msg": "song_url is required"}), 400
+
+    user.song_url = song_url
+    db.session.commit()
+
+    return jsonify(user.serialize()), 200
+
+

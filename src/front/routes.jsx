@@ -13,6 +13,7 @@ import { Profile } from "./pages/Profile";
 import { ProtectedRoute } from "./context/ProtectedRoute";
 import { PublicProfile } from "./pages/PublicProfile";
 import { RegionPage } from "./pages/RegionPage";
+import { MusicBank } from "./pages/MusicBank";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -32,6 +33,16 @@ export const router = createBrowserRouter(
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 🎵 BANCO MUSICAL */}
+      <Route
+        path="/music-bank"
+        element={
+          <ProtectedRoute>
+            <MusicBank />
           </ProtectedRoute>
         }
       />
