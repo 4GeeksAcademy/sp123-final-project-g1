@@ -15,7 +15,7 @@ class Users(db.Model):
     password = db.Column(db.String(80), nullable=False)
     photo_url = db.Column(db.String)
     background = db.Column(db.String(7))
-    song_url = db.Column(db.String)
+    song_url = db.Column(db.String(500), nullable=True)
     alias = db.Column(db.String(80))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)

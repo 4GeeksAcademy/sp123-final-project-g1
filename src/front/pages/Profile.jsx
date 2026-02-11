@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import SongSearch from "../components/SongSearch";
 
 export const Profile = () => {
     const navigate = useNavigate();
@@ -8,6 +9,7 @@ export const Profile = () => {
 
     const [showCustomizer, setShowCustomizer] = useState(false);
     const [bio, setBio] = useState(people?.bio || "");
+    const [song, setSong] = useState(null);
 
     const themes = {
         dark: { background: "#121212", text: "#FFFFFF", accent: "#BB86FC" },
@@ -32,14 +34,14 @@ export const Profile = () => {
 
     const currentRole =
         people?.is_musician ? "musician" :
-        people?.is_dj ? "dj" :
-        people?.is_singer ? "singer" :
-        people?.is_composer ? "composer" :
-        people?.is_teacher ? "teacher" :
-        people?.is_light_tech ? "light_tech" :
-        people?.is_sound_tech ? "sound_tech" :
-        people?.is_producer ? "producer" :
-        "fan";
+            people?.is_dj ? "dj" :
+                people?.is_singer ? "singer" :
+                    people?.is_composer ? "composer" :
+                        people?.is_teacher ? "teacher" :
+                            people?.is_light_tech ? "light_tech" :
+                                people?.is_sound_tech ? "sound_tech" :
+                                    people?.is_producer ? "producer" :
+                                        "fan";
 
     const [allInstruments, setAllInstruments] = useState([]);
     const [myInstruments, setMyInstruments] = useState(people?.instruments || []);
@@ -55,6 +57,28 @@ export const Profile = () => {
             });
     }, []);
 
+    /* ================= LOAD SONG ================= */
+    useEffect(() => {
+        const fetchSong = async () => {
+            const res = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/profile/song`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            const data = await res.json();
+            if (res.ok && data.song_url) {
+                setSong(data);
+            }
+        };
+
+        fetchSong();
+    }, [token]);
+
+
     const handlePhotoUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -62,11 +86,14 @@ export const Profile = () => {
         const formData = new FormData();
         formData.append("photo", file);
 
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/update-photo`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData
-        });
+        const res = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/api/update-photo`,
+            {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            }
+        );
 
         const data = await res.json();
         if (res.ok) setUser(data.user);
@@ -147,6 +174,49 @@ export const Profile = () => {
 
     const activeTheme = themes[user?.theme] || themes.dark;
 
+
+    const handleSaveSong = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.error("NO HAY TOKEN");
+            return;
+        }
+
+        setSavingSong(true);
+
+        try {
+            const resp = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/profile/song`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token,
+                    },
+                    body: JSON.stringify({
+                        song_url: songUrl,
+                    }),
+                }
+            );
+
+            if (!resp.ok) {
+                const error = await resp.json();
+                console.error("ERROR GUARDANDO CANCIÓN:", error);
+                setSavingSong(false);
+                return;
+            }
+
+            const data = await resp.json();
+            console.log("CANCIÓN GUARDADA:", data);
+
+        } catch (err) {
+            console.error("ERROR FETCH:", err);
+        } finally {
+            setSavingSong(false);
+        }
+    };
+
+
     return (
         <div
             className="py-5"
@@ -154,8 +224,7 @@ export const Profile = () => {
                 marginTop: "90px",
                 backgroundColor: user?.background || activeTheme.background,
                 color: activeTheme.text,
-                minHeight: "100vh",
-                transition: "background-color 0.3s ease"
+                minHeight: "100vh"
             }}
         >
 
@@ -188,20 +257,15 @@ export const Profile = () => {
                     />
 
                     <label className="btn btn-outline-light btn-sm mt-2">
-                        Cambiar foto de perfil
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePhotoUpload}
-                            style={{ display: "none" }}
-                        />
+                        Cambiar foto
+                        <input type="file" hidden onChange={handlePhotoUpload} />
                     </label>
 
                     <button
                         className="btn btn-outline-light btn-sm mt-2"
                         onClick={() => setShowCustomizer(!showCustomizer)}
                     >
-                        Cambiar fondo de perfil
+                        Personalizar
                     </button>
                 </div>
 
@@ -244,12 +308,27 @@ export const Profile = () => {
                         ></textarea>
                         <small className="text-muted">Máximo 400 palabras</small>
                         <button
-                            className="btn btn-outline-light btn-sm mt-2"
-                            onClick={handleSaveBio}
+                            className="btn btn-primary btn-sm mt-3"
+                            onClick={() => navigate("/music-bank")}
                         >
-                            Guardar bio
+                            Elegir canción
                         </button>
                     </div>
+                </div>
+
+                {/* CANCIÓN */}
+                <div className="mb-5">
+                    <label className="form-label fw-bold">Canción destacada (URL)</label>
+                    <input
+                        type="text"
+                        className="form-control bg-dark text-light"
+                        value={songUrl}
+                        onChange={(e) => setSongUrl(e.target.value)}
+                    />
+
+                    <button className="btn btn-success mt-3" onClick={handleSaveSong}>
+                        Guardar canción
+                    </button>
                 </div>
 
                 {/* INSTRUMENTOS */}
