@@ -56,20 +56,69 @@ export const Profile = () => {
         }
     };
 
-    return (
-        <div style={{ marginTop: "90px", minHeight: "100vh" }}>
-            <h2 className="text-center mb-5">Perfil</h2>
+  return (
+    <div
+      className="py-5"
+      style={{
+        marginTop: "90px",
+        backgroundColor: user.background || "#121212",
+        color: "#fff",
+        minHeight: "100vh"
+      }}
+    >
+      <h2 className="text-center mb-5">Mi Perfil</h2>
 
-            <div className="col-md-5 mx-auto">
-                <h5 className="fw-bold">🎵 Canción destacada</h5>
+      <div className="container" style={{ maxWidth: "900px" }}>
 
-                <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Pega aquí la URL de SoundCloud"
-                    value={songUrl}
-                    onChange={(e) => setSongUrl(e.target.value)}
-                />
+        {/* FOTO DE PERFIL */}
+        <div className="mb-5 text-center">
+          <img
+            src={
+              user.photo_url
+                ? `${import.meta.env.VITE_BACKEND_URL}${user.photo_url}`
+                : "https://via.placeholder.com/150"
+            }
+            alt="Foto de perfil"
+            className="rounded-circle mb-3"
+            width="150"
+            height="150"
+          />
+
+          <input
+            type="file"
+            className="form-control bg-dark text-light"
+            onChange={(e) => setPhotoFile(e.target.files[0])}
+          />
+
+          <button className="btn btn-success mt-3" onClick={handleUploadPhoto}>
+            Guardar foto
+          </button>
+        </div>
+
+        {/* BACKGROUND */}
+        <div className="mb-5">
+          <label className="form-label fw-bold">Color de fondo</label>
+          <input
+            type="color"
+            className="form-control form-control-color"
+            value={background}
+            onChange={(e) => setBackground(e.target.value)}
+          />
+
+          <button className="btn btn-success mt-3" onClick={handleSaveBackground}>
+            Guardar fondo
+          </button>
+        </div>
+
+        {/* CANCIÓN */}
+        <div className="mb-5">
+          <label className="form-label fw-bold">Canción destacada (URL)</label>
+          <input
+            type="text"
+            className="form-control bg-dark text-light"
+            value={songUrl}
+            onChange={(e) => setSongUrl(e.target.value)}
+          />
 
                 <button
                     className="btn btn-primary btn-sm mt-2"

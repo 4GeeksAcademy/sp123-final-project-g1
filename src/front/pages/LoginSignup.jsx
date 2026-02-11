@@ -20,6 +20,40 @@ export const LoginSignup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // VALIDACIÓN DE SIGNUP
+        if (mode === "signup") {
+
+            if (!form.alias.trim()) {
+                alert("Debes elegir un alias.");
+                return;
+            }
+
+            if (form.password.length < 6) {
+                alert("La contraseña debe tener al menos 6 caracteres.");
+                return;
+            }
+
+            // Alias duplicado
+            const aliasCheck = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/check-alias/${form.alias}`
+            );
+            const aliasData = await aliasCheck.json();
+            if (aliasData.exists) {
+                alert("Ese alias ya está en uso. Elige otro.");
+                return;
+            }
+
+            // Email duplicado
+            const emailCheck = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/check-email/${form.email}`
+            );
+            const emailData = await emailCheck.json();
+            if (emailData.exists) {
+                alert("Ese email ya está registrado.");
+                return;
+            }
+        }
+
         const url =
             mode === "login"
                 ? `${import.meta.env.VITE_BACKEND_URL}/api/login`
@@ -32,19 +66,21 @@ export const LoginSignup = () => {
         });
 
         const data = await res.json();
-        console.log("DATA:", data);
+        console.log("DATA LOGIN/SIGNUP:", data);
 
         if (!res.ok) {
             alert(data.message || "Error");
             return;
         }
 
+        // LOGIN
         if (mode === "login") {
-            login(data.results, data.access_token, data.people);
-            navigate("/profile");
+            login(data.user, data.token, data.people);
+            navigate(`/public-profile/${data.user.alias}`);
             return;
         }
 
+        // SIGNUP
         if (mode === "signup") {
             alert("Cuenta creada. Ahora inicia sesión.");
             setMode("login");
@@ -60,7 +96,7 @@ export const LoginSignup = () => {
                     <input
                         type="text"
                         name="alias"
-                        placeholder="Alias"
+                        placeholder="Alias (único)"
                         className="form-control"
                         onChange={handleChange}
                     />

@@ -2,9 +2,9 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.utils import generate_sitemap, APIException
+from src.api.utils import generate_sitemap, APIException
 from flask_cors import CORS
-from api.models import db, Users, People, Genre, GenrePeople, Bands, GenreBands, Instruments, InstrumentPeople
+from src.api.models import db, Users, People, Genre, GenrePeople, Bands, GenreBands, Instruments, InstrumentPeople
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
@@ -15,50 +15,46 @@ api = Blueprint('api', __name__)
 CORS(api)  # Allow CORS requests to this API
 
 
-@api.route("/login", methods=["POST"])
+@api.route('/login', methods=['POST'])
 def login():
-    response_body = {}
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
+    body = request.get_json()
+    email = body.get("email")
+    password = body.get("password")
     if not email or not password:
-        response_body["message"] = "Email and password required"
-        return jsonify(response_body), 400
-    row = db.session.execute(
-        db.select(Users).where(Users.email == email, Users.is_active == True)).scalar()
-    if not row or row.password != password:
-        response_body["message"] = "Bad username or password"
-        return jsonify(response_body), 401
-    user = row.serialize()
-    people = People.query.filter_by(user_id=user["id"]).first()
-    claims = {"user_id": user["id"],
-              "is_active": user["is_active"],
-              "is_admin": user.get("is_admin", False)}
-    response_body["message"] = "User logged, ok"
-    response_body["results"] = user
-    response_body["people"] = people.serialize() if people else None
-    response_body["access_token"] = create_access_token(identity=email, additional_claims=claims)
-
+        return jsonify({"msg": "Email y contraseña requeridos"}), 400
+    user = Users.query.filter_by(email=email).first()
+    if not user or user.password != password:
+        return jsonify({"msg": "Credenciales inválidas"}), 401
+    access_token = create_access_token(identity=user.id)
+    people = People.query.filter_by(user_id=user.id).first()
+    response_body = {"token": access_token, "user": user.serialize(), "people": people.serialize() if people else None}
+    
     return jsonify(response_body), 200
 
 
 @api.route("/signup", methods=["POST"])
 def signup():
-    response_body = {}
-    email = request.json.get("email")
-    password = request.json.get("password")
-    alias = request.json.get("alias")
-    photo_url = request.json.get("photo_url")
-    background = request.json.get("background")
-    song_url = request.json.get("song_url")
-    latitude = request.json.get("latitude")
-    longitude = request.json.get("longitude")
+    body = request.get_json()
+    email = body.get("email")
+    password = body.get("password")
+    alias = body.get("alias")
+    photo_url = body.get("photo_url")
+    background = body.get("background")
+    song_url = body.get("song_url")
+    latitude = body.get("latitude")
+    longitude = body.get("longitude")
+    if not alias or alias.strip() == "":
+        return jsonify({"message": "El alias es obligatorio"}), 400
     if not email or not password:
-        response_body["message"] = "Email and password required"
-        return jsonify(response_body), 400
-    exists = db.session.execute(db.select(Users).where(Users.email == email)).scalar()
-    if exists:
-        response_body["message"] = "User already exists"
-        return jsonify(response_body), 400
+        return jsonify({"message": "Email y contraseña requeridos"}), 400
+    if len(password) < 6:
+        return jsonify({"message": "La contraseña debe tener al menos 6 caracteres"}), 400
+    alias_exists = Users.query.filter_by(alias=alias).first()
+    if alias_exists:
+        return jsonify({"message": "Ese alias ya está en uso"}), 400
+    email_exists = Users.query.filter_by(email=email).first()
+    if email_exists:
+        return jsonify({"message": "Ese email ya está registrado"}), 400
     user = Users(email=email,
                  password=password,
                  alias=alias,
@@ -85,11 +81,8 @@ def signup():
                     is_fan=True)
     db.session.add(people)
     db.session.commit()
-    response_body["message"] = "User Created"
-    response_body["results"] = user.serialize()
-    response_body["people"] = people.serialize()
 
-    return jsonify(response_body), 201
+    return jsonify({"message": "Usuario creado correctamente","user": user.serialize(),"people": people.serialize()}), 201
 
 
 @api.route("/profile", methods=["GET"])
@@ -542,63 +535,90 @@ def update_photo():
     return jsonify({"user": user.serialize()}), 200
 
 
-@api.route('/api/update-bio', methods=['POST'])
+@api.route('/update-bio', methods=['POST'])
 @jwt_required()
 def update_bio():
     user_id = get_jwt_identity()
-    data = request.get_json()
-    bio = data.get('bio', '')
+    body = request.get_json()
+    bio = body.get("bio", "")
+
     people = People.query.filter_by(user_id=user_id).first()
     if not people:
-        return jsonify({"msg": "People not found"}), 404
+        return jsonify({"msg": "Perfil no encontrado"}), 404
     people.bio = bio
     db.session.commit()
-
-    return jsonify({"people": people.serialize()}), 200
+    return jsonify({"msg": "Bio actualizada", "people": people.serialize()}), 200
 
 
 @api.route('/public-profile/<alias>', methods=['GET'])
 def public_profile(alias):
     user = Users.query.filter_by(alias=alias).first()
     if not user:
-        return jsonify({"msg": "User not found"}), 404
+        return jsonify({"msg": "Usuario no encontrado"}), 404
     people = People.query.filter_by(user_id=user.id).first()
+    if not people:
+        return jsonify({"msg": "Perfil no encontrado"}), 404
+    
+    return jsonify({"user": user.serialize(), "people": people.serialize()}), 200
 
-    return jsonify({"user": user.serialize(),"people": people.serialize() if people else None}), 200
 
-
-@api.route('/api/update-instruments', methods=['POST'])
+@api.route('/update-instruments', methods=['POST'])
 @jwt_required()
 def update_instruments():
     user_id = get_jwt_identity()
-    data = request.get_json()
-    instruments = data.get("instruments", [])
+    body = request.get_json()
+    instruments = body.get("instruments", [])
     people = People.query.filter_by(user_id=user_id).first()
     if not people:
-        return jsonify({"msg": "People not found"}), 404
+        return jsonify({"msg": "Perfil no encontrado"}), 404
     InstrumentPeople.query.filter_by(people_id=people.id).delete()
     for inst in instruments:
-        new_inst = InstrumentPeople(people_id=people.id,instrument_id=inst["instrument_id"],level=inst["level"])
+        new_inst = InstrumentPeople(people_id=people.id, instrument_id=inst["instrument_id"], level=inst["level"])
         db.session.add(new_inst)
     db.session.commit()
 
-    return jsonify({"people": people.serialize()}), 200
+    return jsonify({"msg": "Instrumentos actualizados", "people": people.serialize()}), 200
 
 
-@api.route('/api/update-roles', methods=['POST'])
+@api.route('/update-roles', methods=['POST'])
 @jwt_required()
 def update_roles():
     user_id = get_jwt_identity()
-    data = request.get_json()
+    body = request.get_json()
     people = People.query.filter_by(user_id=user_id).first()
     if not people:
-        return jsonify({"msg": "People not found"}), 404
-    for key, value in data.items():
-        if hasattr(people, key): setattr(people, key, value)
+        return jsonify({"msg": "Perfil no encontrado"}), 404
+    roles = ["is_musician", "is_dj", "is_singer", "is_composer", "is_teacher", "is_light_tech", "is_sound_tech", "is_producer", "is_fan"]
+    for role in roles:
+        if role in body: setattr(people, role, body[role])
     db.session.commit()
 
-    return jsonify({
-        "people": people.serialize()}), 200
+    return jsonify({"msg": "Roles actualizados", "people": people.serialize()}), 200
+
+
+@api.route('/seed-instruments')
+def seed_instruments():
+    names = [
+        "Guitarra", "Piano", "Batería", "Bajo", "Violín", "Saxofón", "Trompeta", "Percusión", "Teclado", "Ukelele"]
+    for name in names:
+        exists = Instruments.query.filter_by(name=name).first()
+        if not exists:
+            db.session.add(Instruments(name=name))
+    db.session.commit()
+    
+    return jsonify({"message": "Instruments seeded"}), 200
+
+
+@api.route('/check-alias/<alias>', methods=['GET'])
+def check_alias(alias):
+    exists = Users.query.filter_by(alias=alias).first() is not None
+    return jsonify({"exists": exists}), 200
+
+
+@api.route('/check-email/<email>', methods=['GET'])
+def check_email(email):
+    exists = Users.query.filter_by(email=email).first() is not None
+    return jsonify({"exists": exists}), 200
 
 
 @api.route("/profile/song", methods=["PUT"])
