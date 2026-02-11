@@ -26,7 +26,7 @@ export const router = createBrowserRouter(
       <Route path="/public-profile/:alias" element={<PublicProfile />} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/music-bank" element={<ProtectedRoute><MusicBank /></ProtectedRoute>} />
-      <Route path="/region/:country/:city" element={<RegionPage />} /
+      <Route path="/region/:country/:city" element={<RegionPage />} />
     </Route>
   )
 );
