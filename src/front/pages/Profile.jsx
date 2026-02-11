@@ -34,14 +34,14 @@ export const Profile = () => {
 
     const currentRole =
         people?.is_musician ? "musician" :
-        people?.is_dj ? "dj" :
-        people?.is_singer ? "singer" :
-        people?.is_composer ? "composer" :
-        people?.is_teacher ? "teacher" :
-        people?.is_light_tech ? "light_tech" :
-        people?.is_sound_tech ? "sound_tech" :
-        people?.is_producer ? "producer" :
-        "fan";
+            people?.is_dj ? "dj" :
+                people?.is_singer ? "singer" :
+                    people?.is_composer ? "composer" :
+                        people?.is_teacher ? "teacher" :
+                            people?.is_light_tech ? "light_tech" :
+                                people?.is_sound_tech ? "sound_tech" :
+                                    people?.is_producer ? "producer" :
+                                        "fan";
 
     const [allInstruments, setAllInstruments] = useState([]);
     const [myInstruments, setMyInstruments] = useState(people?.instruments || []);
@@ -174,6 +174,49 @@ export const Profile = () => {
 
     const activeTheme = themes[user?.theme] || themes.dark;
 
+
+    const handleSaveSong = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.error("NO HAY TOKEN");
+            return;
+        }
+
+        setSavingSong(true);
+
+        try {
+            const resp = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/profile/song`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token,
+                    },
+                    body: JSON.stringify({
+                        song_url: songUrl,
+                    }),
+                }
+            );
+
+            if (!resp.ok) {
+                const error = await resp.json();
+                console.error("ERROR GUARDANDO CANCIÓN:", error);
+                setSavingSong(false);
+                return;
+            }
+
+            const data = await resp.json();
+            console.log("CANCIÓN GUARDADA:", data);
+
+        } catch (err) {
+            console.error("ERROR FETCH:", err);
+        } finally {
+            setSavingSong(false);
+        }
+    };
+
+
     return (
         <div
             className="py-5"
@@ -271,6 +314,21 @@ export const Profile = () => {
                             Elegir canción
                         </button>
                     </div>
+                </div>
+
+                {/* CANCIÓN */}
+                <div className="mb-5">
+                    <label className="form-label fw-bold">Canción destacada (URL)</label>
+                    <input
+                        type="text"
+                        className="form-control bg-dark text-light"
+                        value={songUrl}
+                        onChange={(e) => setSongUrl(e.target.value)}
+                    />
+
+                    <button className="btn btn-success mt-3" onClick={handleSaveSong}>
+                        Guardar canción
+                    </button>
                 </div>
 
                 {/* INSTRUMENTOS */}

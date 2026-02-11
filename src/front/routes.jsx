@@ -23,33 +23,10 @@ export const router = createBrowserRouter(
       <Route path="/single/:theId" element={<Single />} />
       <Route path="/demo" element={<Demo />} />
       <Route path="/loginsignup" element={<LoginSignup />} />
-
-      {/* PERFIL PÚBLICO */}
       <Route path="/public-profile/:alias" element={<PublicProfile />} />
-
-      {/* PERFIL PRIVADO */}
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* 🎵 BANCO MUSICAL */}
-      <Route
-        path="/music-bank"
-        element={
-          <ProtectedRoute>
-            <MusicBank />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* REGIÓN / PAÍS */}
-      <Route path="/region/:country/:city" element={<RegionPage />} />
-
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/music-bank" element={<ProtectedRoute><MusicBank /></ProtectedRoute>} />
+      <Route path="/region/:country/:city" element={<RegionPage />} /
     </Route>
   )
 );
