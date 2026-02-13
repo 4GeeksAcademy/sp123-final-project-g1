@@ -14,13 +14,14 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from datetime import timedelta
 
+
+TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
+
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 app.config["JWT_SECRET_KEY"] = "super-secret"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
-
-
 
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"

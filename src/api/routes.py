@@ -1,6 +1,8 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
+import os
+import requests
 from flask import Flask, request, jsonify, url_for, Blueprint
 from src.api.utils import generate_sitemap, APIException
 from flask_cors import CORS
@@ -9,7 +11,6 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import get_jwt
-
 
 api = Blueprint('api', __name__)
 CORS(api)  # Allow CORS requests to this API
@@ -643,3 +644,23 @@ def update_profile_song():
     return jsonify(user.serialize()), 200
 
 
+@api.route("/events/<country_code>", methods=["GET"])
+def get_events(country_code):
+
+    api_key = os.getenv("TICKETMASTER_API_KEY")
+
+    if not api_key:
+        return jsonify({"error": "API key not configured"}), 500
+
+    url = "https://app.ticketmaster.com/discovery/v2/events.json"
+
+    params = {
+        "apikey": api_key,
+        "countryCode": country_code,
+        "classificationName": "music",
+        "size": 20
+    }
+
+    response = requests.get(url, params=params)
+
+    return jsonify(response.json()), 200
