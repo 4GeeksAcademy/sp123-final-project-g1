@@ -18,28 +18,34 @@ from datetime import timedelta
 TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# ✅ FIX CORS (CLAVE)
+CORS(app)
 
 app.config["JWT_SECRET_KEY"] = "super-secret"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 
-
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../dist/')
 app.url_map.strict_slashes = False
-# Database condiguration
+
+# Database configuration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://")
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///instance/database.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
+
 # Other configuration
-setup_admin(app)  # Add the admin
-setup_commands(app)  # Add the admin
-app.register_blueprint(api, url_prefix='/api')  # Add all endpoints form the API with a "api" prefix
+setup_admin(app)
+setup_commands(app)
+
+app.register_blueprint(api, url_prefix='/api')
+
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 jwt = JWTManager(app)
 
@@ -64,7 +70,7 @@ def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
         path = 'index.html'
     response = send_from_directory(static_file_dir, path)
-    response.cache_control.max_age = 0  # Avoid cache memory
+    response.cache_control.max_age = 0
     return response
 
 

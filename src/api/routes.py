@@ -646,14 +646,17 @@ def update_profile_song():
 
 @api.route("/events/<country_code>", methods=["GET"])
 def get_events(country_code):
+    import os
+    import requests
+    from flask import jsonify
 
     api_key = os.getenv("TICKETMASTER_API_KEY")
-
     if not api_key:
         return jsonify({"error": "API key not configured"}), 500
 
-    url = "https://app.ticketmaster.com/discovery/v2/events.json"
+    country_code = country_code.upper()  # 🔑 CLAVE
 
+    url = "https://app.ticketmaster.com/discovery/v2/events.json"
     params = {
         "apikey": api_key,
         "countryCode": country_code,
@@ -662,5 +665,18 @@ def get_events(country_code):
     }
 
     response = requests.get(url, params=params)
+    data = response.json()
 
-    return jsonify(response.json()), 200
+    if "_embedded" not in data:
+        return jsonify([]), 200
+
+    events = []
+    for event in data["_embedded"]["events"]:
+        events.append({
+            "id": event.get("id"),
+            "name": event.get("name"),
+            "date": event.get("dates", {}).get("start", {}).get("localDate"),
+            "image": event.get("images", [{}])[0].get("url")
+        })
+
+    return jsonify(events), 200
