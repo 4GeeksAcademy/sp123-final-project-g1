@@ -23,9 +23,13 @@ class Users(db.Model):
     city = db.Column(db.String(80))
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    multimedia = db.relationship("Multimedia", backref="user", lazy=True)
     theme = db.Column(db.String(20), default="dark")
+    youtube_url = db.Column(db.String(500))
+
     def __repr__(self):
         return f'<User {self.id} - {self.email}>'
+
     def serialize(self):
         return {"id": self.id,
                 "email": self.email,
@@ -35,12 +39,14 @@ class Users(db.Model):
                 "alias": self.alias,
                 "latitude": self.latitude,
                 "longitude": self.longitude,
+                "country": self.country,
+                "city": self.city,
                 "is_active": self.is_active,
                 "theme": self.theme,
-                "is_admin": self.is_admin
-                }
+                "is_admin": self.is_admin,
+                "youtube_url": getattr(self, "youtube_url", None),}
 
-    
+
 class People(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
@@ -55,9 +61,11 @@ class People(db.Model):
     is_sound_tech = db.Column(db.Boolean)
     is_producer = db.Column(db.Boolean)
     is_fan = db.Column(db.Boolean)
-    instrument_people = db.relationship("InstrumentPeople", backref="people", lazy=True)
+    instrument_people = db.relationship(
+        "InstrumentPeople", backref="people", lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    user_to = db.relationship('Users',foreign_keys=[user_id],backref=db.backref('people_to', lazy='select'))
+    user_to = db.relationship('Users', foreign_keys=[
+                              user_id], backref=db.backref('people_to', lazy='select'))
     def __repr__(self):
         return f"<People {self.id} - {self.name} {self.surname}>"
     def serialize(self):
@@ -74,12 +82,11 @@ class People(db.Model):
                 "is_sound_tech": self.is_sound_tech,
                 "is_producer": self.is_producer,
                 "is_fan": self.is_fan,
-                "instruments": [{"instrument_id": ip.instrument_id,
-                                 "level": ip.level,
-                                 "name": ip.instrument.name}
-                                 for ip in self.instrument_people]}
+                "instruments": [{"instrument_id": ip.instrument_id,"level": ip.level,"name": ip.instrument.name,"comment": ip.comment }
+                for ip in self.instrument_people],
+                "multimedia": [m.serialize() for m in getattr(self.user_to, "multimedia", [])]}
 
-    
+
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
@@ -88,13 +95,13 @@ class Genre(db.Model):
     def serialize(self):
         return {"id": self.id,
                 "name": self.name}
-    
+
 
 class GenrePeople(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     people_id = db.Column(db.Integer, db.ForeignKey('people.id'))
     people_to = db.relationship('People', foreign_keys=[people_id],
-                               backref=db.backref('people_to_GP', lazy='select'))
+                                backref=db.backref('people_to_GP', lazy='select'))
     genre_id = db.Column(db.Integer, db.ForeignKey('genre.id'))
     genre_to = db.relationship('Genre', foreign_keys=[genre_id],
                                backref=db.backref('genre_to_GP', lazy='select'))
@@ -104,13 +111,13 @@ class GenrePeople(db.Model):
         return {"id": self.id,
                 "people_id": self.people_id,
                 "genre_id": self.genre_id}
-    
+
 
 class GenreBands(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     band_id = db.Column(db.Integer, db.ForeignKey('bands.id'))
     band_to = db.relationship('Bands', foreign_keys=[band_id],
-                               backref=db.backref('band_to_GB', lazy='select'))
+                              backref=db.backref('band_to_GB', lazy='select'))
     genre_id = db.Column(db.Integer, db.ForeignKey('genre.id'))
     genre_to = db.relationship('Genre', foreign_keys=[genre_id],
                                backref=db.backref('genre_to_GB', lazy='select'))
@@ -123,7 +130,7 @@ class GenreBands(db.Model):
                 "band_id": self.band_id,
                 "genre_id": self.genre_id,
                 "genre": self.genre.serialize() if self.genre else None}
-    
+
 
 class Bands(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -131,7 +138,7 @@ class Bands(db.Model):
     bio = db.Column(db.String)
     owner_id = db.Column(db.Integer, db.ForeignKey('people.id'))
     user_to = db.relationship('People', foreign_keys=[owner_id],
-                               backref=db.backref('user_to_B', lazy='select'))
+                              backref=db.backref('user_to_B', lazy='select'))
     def __repr__(self):
         return f'<Band {self.name}>'
     def serialize(self):
@@ -140,18 +147,19 @@ class Bands(db.Model):
                 "bio": self.bio,
                 "owner_id": self.owner_id,
                 "genres": [g.serialize() for g in self.genres]}
-    
-    
+
+
 class Instruments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    instrument_people = db.relationship('InstrumentPeople', backref='instrument', overlaps="instrument_id_to,instrument_to_IP")
+    instrument_people = db.relationship(
+        'InstrumentPeople', backref='instrument', overlaps="instrument_id_to,instrument_to_IP")
     def __repr__(self):
         return f'<Instrument {self.name} - {self.id}>'
     def serialize(self):
         return {"id": self.id,
                 "name": self.name}
-    
+
 
 class InstrumentPeople(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -159,11 +167,16 @@ class InstrumentPeople(db.Model):
     instrument_id = db.Column(db.Integer, db.ForeignKey('instruments.id'))
     instrument_id_to = db.relationship('Instruments', foreign_keys=[instrument_id], backref=db.backref('instrument_to_IP', lazy='select'), overlaps="instrument_people,instrument")
     level = db.Column(db.Integer, nullable=False, default=1)
-    def __repr__(self):
-        return f'<InstrumentPeople {self.id} - {self.instrument_id}>'
+    comment = db.Column(db.Text, nullable=True)   # 👈 AÑADIDO
     def serialize(self):
-        return {"id": self.id, "level": self.level, "instrument": self.instrument.serialize() if self.instrument else None}
-    
+        return {"id": self.id,"level": self.level,"comment": self.comment, "instrument": self.instrument.serialize() if self.instrument else None}
 
 
-
+class Multimedia(db.Model):
+    __tablename__ = "multimedia"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    url = db.Column(db.String(500), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    def serialize(self):
+        return {"id": self.id, "url": self.url, "type": self.type}
