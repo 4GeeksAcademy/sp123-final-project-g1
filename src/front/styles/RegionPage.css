@@ -1,0 +1,100 @@
+
+.region-page {
+  min-height: 100vh;
+  padding: 60px 40px;
+  color: #e6e9ff;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+
+.region-title {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(
+    120deg,
+    #4cc9f0,
+    #7b5cff,
+    #b517ff
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+
+.region-subtitle {
+  font-size: 1.2rem;
+  color: #9aa3ff;
+  margin-bottom: 40px;
+}
+
+/* ================================
+   GRID DE CATEGORÍAS
+================================ */
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+/* ================================
+   TARJETAS
+================================ */
+.region-card {
+  background: linear-gradient(
+    145deg,
+    rgba(76, 201, 240, 0.08),
+    rgba(123, 92, 255, 0.08)
+  );
+  border: 1px solid rgba(123, 92, 255, 0.35);
+  border-radius: 18px;
+  padding: 28px;
+  backdrop-filter: blur(14px);
+  transition: all 0.35s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.region-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(76, 201, 240, 0.35),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.region-card:hover::before {
+  opacity: 1;
+}
+
+.region-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: #4cc9f0;
+  box-shadow:
+    0 0 25px rgba(76, 201, 240, 0.35),
+    0 0 60px rgba(123, 92, 255, 0.25);
+}
+
+/* ================================
+   TEXTO DE TARJETAS
+================================ */
+.region-card h3 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+.region-card p {
+  font-size: 0.95rem;
+  color: #b9c0ff;
+  line-height: 1.5;
+}

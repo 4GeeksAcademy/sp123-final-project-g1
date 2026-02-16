@@ -1,11 +1,20 @@
-export const Footer = () => (
-	<footer className="footer mt-auto py-3 text-center">
-		<p>
-			Check the <a target="_blank" href="https://4geeks.com/docs/start/react-flask-template">template documentation</a> <i className="fa-solid fa-file"></i> for help.
-		</p>
-		<p>
-			Made with <i className="fa fa-heart text-danger" /> by{" "}
-			<a href="http://www.4geeksacademy.com">4Geeks Academy</a>
-		</p>
-	</footer>
-);
+
+import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
+
+export const Footer = () => {
+  const { store } = useGlobalReducer();
+
+  return (
+    <footer className="fixed-bottom bg-light border-top py-2">
+      <div className="container text-center small text-muted">
+        {store.message ? (
+          <span>{store.message}</span>
+        ) : (
+          <span>
+            Loading message from the backend (make sure your pythons 🐍 backend is running)...
+          </span>
+        )}
+      </div>
+    </footer>
+  );
+};
