@@ -1,0 +1,82 @@
+.events-sidebar {
+  width: 320px;
+  margin-top: 140px; /* 👈 ESTO LA BAJA */
+  margin-right: 30px;
+  background: linear-gradient(180deg, #0b1025, #0e1538);
+  color: #e4e7ff;
+  padding: 20px;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  position: sticky;
+  top: 120px;
+}
+
+.events-sidebar h3 {
+  letter-spacing: 0.25em;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  color: #8fa2ff;
+}
+
+.events-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.event-card {
+  background: #0f173a;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+}
+
+.event-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+
+.event-info {
+  padding: 10px;
+}
+
+.artist {
+  font-weight: 600;
+  display: block;
+}
+
+.country {
+  font-size: 0.75rem;
+  color: #7aa2ff;
+  letter-spacing: 0.1em;
+}
+
+.date {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.controls button {
+  background: none;
+  border: 1px solid #7aa2ff;
+  color: #7aa2ff;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.controls button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}

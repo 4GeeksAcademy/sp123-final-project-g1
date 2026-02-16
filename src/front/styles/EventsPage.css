@@ -1,0 +1,51 @@
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+}
+
+.event-card {
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.event-image-wrapper {
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+}
+
+.event-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-info {
+  padding: 12px;
+}
+
+.event-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+}
+
+.event-date {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.events-page {
+  margin-top: 100px; /* ajusta según la altura de tu navbar */
+}

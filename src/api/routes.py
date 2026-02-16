@@ -1,6 +1,8 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
+import os
+import requests
 from flask import Flask, request, jsonify, url_for, Blueprint
 from src.api.utils import generate_sitemap, APIException
 from flask_cors import CORS
@@ -9,7 +11,6 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import get_jwt
-
 
 api = Blueprint('api', __name__)
 CORS(api)  # Allow CORS requests to this API
@@ -27,8 +28,9 @@ def login():
         return jsonify({"msg": "Credenciales inválidas"}), 401
     access_token = create_access_token(identity=user.id)
     people = People.query.filter_by(user_id=user.id).first()
-    response_body = {"token": access_token, "user": user.serialize(), "people": people.serialize() if people else None}
-    
+    response_body = {"token": access_token, "user": user.serialize(
+    ), "people": people.serialize() if people else None}
+
     return jsonify(response_body), 200
 
 
@@ -82,7 +84,7 @@ def signup():
     db.session.add(people)
     db.session.commit()
 
-    return jsonify({"message": "Usuario creado correctamente","user": user.serialize(),"people": people.serialize()}), 201
+    return jsonify({"message": "Usuario creado correctamente", "user": user.serialize(), "people": people.serialize()}), 201
 
 
 @api.route("/profile", methods=["GET"])
@@ -96,6 +98,7 @@ def profile():
         return jsonify({"msg": "User not found"}), 404
 
     return jsonify(user.serialize()), 200
+
 
 @api.route("/profile", methods=["PUT"])
 @jwt_required()
@@ -116,7 +119,6 @@ def update_profile():
     db.session.commit()
 
     return jsonify(user.serialize()), 200
-
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -151,7 +153,8 @@ def users():
 @api.route('/users/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
 def user(user_id):
     response_body = {}
-    row = db.session.execute(db.select(Users).where(Users.id == user_id)).scalar()
+    row = db.session.execute(
+        db.select(Users).where(Users.id == user_id)).scalar()
     if not row:
         response_body['message'] = "User not found"
         return response_body, 404
@@ -203,7 +206,8 @@ def people():
 @api.route('/people/<int:people_id>', methods=['GET', 'PUT', 'DELETE'])
 def person(people_id):
     response_body = {}
-    row = db.session.execute(db.select(People).where(People.id == people_id)).scalar()
+    row = db.session.execute(db.select(People).where(
+        People.id == people_id)).scalar()
     if not row:
         response_body['message'] = "Person not found"
         return response_body, 404
@@ -248,7 +252,8 @@ def genres():
 @api.route('/genres/<int:genre_id>', methods=['GET', 'PUT', 'DELETE'])
 def genre(genre_id):
     response_body = {}
-    row = db.session.execute(db.select(Genre).where(Genre.id == genre_id)).scalar()
+    row = db.session.execute(
+        db.select(Genre).where(Genre.id == genre_id)).scalar()
     if not row:
         response_body['message'] = "Genre not found"
         return response_body, 404
@@ -292,7 +297,8 @@ def genre_people():
 @jwt_required()
 def genre_people_item(item_id):
     response_body = {}
-    row = db.session.execute(db.select(GenrePeople).where(GenrePeople.id == item_id)).scalar()
+    row = db.session.execute(db.select(GenrePeople).where(
+        GenrePeople.id == item_id)).scalar()
     if not row:
         response_body['message'] = "Link not found"
         return response_body, 404
@@ -324,7 +330,8 @@ def bands():
 @api.route('/bands/<int:band_id>', methods=['GET', 'PUT', 'DELETE'])
 def band(band_id):
     response_body = {}
-    row = db.session.execute(db.select(Bands).where(Bands.id == band_id)).scalar()
+    row = db.session.execute(
+        db.select(Bands).where(Bands.id == band_id)).scalar()
     if not row:
         response_body['message'] = "Band not found"
         return response_body, 404
@@ -370,7 +377,8 @@ def genre_bands():
 @jwt_required()
 def genre_bands_item(item_id):
     response_body = {}
-    row = db.session.execute(db.select(GenreBands).where(GenreBands.id == item_id)).scalar()
+    row = db.session.execute(db.select(GenreBands).where(
+        GenreBands.id == item_id)).scalar()
     if not row:
         response_body['message'] = "Link not found"
         return response_body, 404
@@ -403,7 +411,8 @@ def instruments():
 @jwt_required()
 def instrument(instrument_id):
     response_body = {}
-    row = db.session.execute(db.select(Instruments).where(Instruments.id == instrument_id)).scalar()
+    row = db.session.execute(db.select(Instruments).where(
+        Instruments.id == instrument_id)).scalar()
     if not row:
         response_body['message'] = "Instrument not found"
         return response_body, 404
@@ -436,7 +445,8 @@ def instrument_people():
 @jwt_required()
 def instrument_people_item(item_id):
     response_body = {}
-    row = db.session.execute(db.select(InstrumentPeople).where(InstrumentPeople.id == item_id)).scalar()
+    row = db.session.execute(db.select(InstrumentPeople).where(
+        InstrumentPeople.id == item_id)).scalar()
     if not row:
         response_body['message'] = "Link not found"
         return response_body, 404
@@ -444,7 +454,7 @@ def instrument_people_item(item_id):
     db.session.commit()
     response_body['message'] = f"Link {item_id} deleted"
 
-    return response_body, 200           
+    return response_body, 200
 
 
 @api.route('/user/location', methods=['POST'])
@@ -459,7 +469,8 @@ def save_location():
 
 @api.route('/map/people', methods=['GET'])
 def map_people():
-    rows = (db.session.execute(db.select(People).join(Users).where(Users.latitude.isnot(None),Users.longitude.isnot(None))).scalars().all())
+    rows = (db.session.execute(db.select(People).join(Users).where(
+        Users.latitude.isnot(None), Users.longitude.isnot(None))).scalars().all())
     features = []
     for person in rows:
         user = person.user_to
@@ -477,7 +488,7 @@ def map_people():
                            "city": user.city,
                            "country": user.country}})
 
-    return jsonify({"type": "FeatureCollection","features": features}), 200
+    return jsonify({"type": "FeatureCollection", "features": features}), 200
 
 
 @api.route("/update-background", methods=["POST"])
@@ -558,7 +569,7 @@ def public_profile(alias):
     people = People.query.filter_by(user_id=user.id).first()
     if not people:
         return jsonify({"msg": "Perfil no encontrado"}), 404
-    
+
     return jsonify({"user": user.serialize(), "people": people.serialize()}), 200
 
 
@@ -573,7 +584,8 @@ def update_instruments():
         return jsonify({"msg": "Perfil no encontrado"}), 404
     InstrumentPeople.query.filter_by(people_id=people.id).delete()
     for inst in instruments:
-        new_inst = InstrumentPeople(people_id=people.id, instrument_id=inst["instrument_id"], level=inst["level"])
+        new_inst = InstrumentPeople(
+            people_id=people.id, instrument_id=inst["instrument_id"], level=inst["level"])
         db.session.add(new_inst)
     db.session.commit()
 
@@ -588,9 +600,11 @@ def update_roles():
     people = People.query.filter_by(user_id=user_id).first()
     if not people:
         return jsonify({"msg": "Perfil no encontrado"}), 404
-    roles = ["is_musician", "is_dj", "is_singer", "is_composer", "is_teacher", "is_light_tech", "is_sound_tech", "is_producer", "is_fan"]
+    roles = ["is_musician", "is_dj", "is_singer", "is_composer",
+             "is_teacher", "is_light_tech", "is_sound_tech", "is_producer", "is_fan"]
     for role in roles:
-        if role in body: setattr(people, role, body[role])
+        if role in body:
+            setattr(people, role, body[role])
     db.session.commit()
 
     return jsonify({"msg": "Roles actualizados", "people": people.serialize()}), 200
@@ -605,7 +619,7 @@ def seed_instruments():
         if not exists:
             db.session.add(Instruments(name=name))
     db.session.commit()
-    
+
     return jsonify({"message": "Instruments seeded"}), 200
 
 
@@ -643,3 +657,83 @@ def update_profile_song():
     return jsonify(user.serialize()), 200
 
 
+@api.route("/events/<country_code>", methods=["GET"])
+def get_events(country_code):
+    import os
+    import requests
+    from flask import jsonify
+
+    api_key = os.getenv("TICKETMASTER_API_KEY")
+    if not api_key:
+        return jsonify({"error": "API key not configured"}), 500
+
+    country_code = country_code.upper()  # 🔑 CLAVE
+
+    url = "https://app.ticketmaster.com/discovery/v2/events.json"
+    params = {
+        "apikey": api_key,
+        "countryCode": country_code,
+        "classificationName": "music",
+        "size": 20
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "_embedded" not in data:
+        return jsonify([]), 200
+
+    events = []
+    for event in data["_embedded"]["events"]:
+        events.append({
+            "id": event.get("id"),
+            "name": event.get("name"),
+            "date": event.get("dates", {}).get("start", {}).get("localDate"),
+            "image": event.get("images", [{}])[0].get("url")
+        })
+
+    return jsonify(events), 200
+
+@api.route("/events/highlights", methods=["GET"])
+def get_highlight_events():
+    import os
+    import requests
+
+    api_key = os.getenv("TICKETMASTER_API_KEY")
+
+    if not api_key:
+        return jsonify([]), 200
+
+    url = "https://app.ticketmaster.com/discovery/v2/events.json"
+
+    params = {
+        "apikey": api_key,
+        "classificationName": "music",
+        "size": 12
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        return jsonify([]), 200
+
+    data = response.json()
+
+    if "_embedded" not in data:
+        return jsonify([]), 200
+
+    events = []
+
+    for event in data["_embedded"]["events"]:
+        events.append({
+            "id": event.get("id"),
+            "name": event.get("name"),
+            "date": event.get("dates", {}).get("start", {}).get("localDate"),
+            "image": event.get("images", [{}])[0].get("url"),
+            "country": event.get("_embedded", {})
+                .get("venues", [{}])[0]
+                .get("country", {})
+                .get("countryCode")
+        })
+
+    return jsonify(events), 200
