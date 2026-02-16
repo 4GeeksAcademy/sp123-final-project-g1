@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import logo from "../assets/img/logo.jpg";
+import sonora from "../assets/img/sonora.png";
+
+
 
 export const Navbar = () => {
 

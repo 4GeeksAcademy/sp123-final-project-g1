@@ -33,6 +33,7 @@ class Users(db.Model):
     def serialize(self):
         return {"id": self.id,
                 "email": self.email,
+                "country": self.country,
                 "photo_url": self.photo_url,
                 "background": self.background,
                 "song_url": self.song_url,
@@ -82,9 +83,17 @@ class People(db.Model):
                 "is_sound_tech": self.is_sound_tech,
                 "is_producer": self.is_producer,
                 "is_fan": self.is_fan,
-                "instruments": [{"instrument_id": ip.instrument_id,"level": ip.level,"name": ip.instrument.name,"comment": ip.comment }
-                for ip in self.instrument_people],
-                "multimedia": [m.serialize() for m in getattr(self.user_to, "multimedia", [])]}
+                "alias": self.user_to.alias,
+                "country": self.user_to.country,
+                "city": self.user_to.city,
+                "latitude": self.user_to.latitude,
+                "longitude": self.user_to.longitude,
+                "photo_url": self.user_to.photo_url,                
+                "instruments": [{"instrument_id": ip.instrument_id,
+                                 "level": ip.level,
+                                 "name": ip.instrument.name}
+                                 for ip in self.instrument_people]}
+    
 
 
 class Genre(db.Model):

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { MusicMap } from "../components/MusicMap.jsx";
 import EventsSidebar from "../components/EventsSidebar";
+import { HomePage } from "./HomePage.jsx";
 import "../styles/RegionPage.css";
 
 export const Home = () => {
@@ -44,6 +45,10 @@ export const Home = () => {
 
       {/* SIDEBAR (DERECHA) */}
       <EventsSidebar />
+    <div className="container mt-5">
+      <section className="region-page">
+        <HomePage />
+      </section>
     </div>
   );
 };
