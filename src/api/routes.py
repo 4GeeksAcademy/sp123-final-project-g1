@@ -1,6 +1,8 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
+import os
+import requests
 from flask import Flask, request, jsonify, url_for, Blueprint
 from src.api.utils import generate_sitemap, APIException
 from flask_cors import CORS
@@ -661,6 +663,86 @@ def update_youtube():
     return jsonify(user.serialize()), 200
 
 
+@api.route("/events/<country_code>", methods=["GET"])
+def get_events(country_code):
+    import os
+    import requests
+    from flask import jsonify
+
+    api_key = os.getenv("TICKETMASTER_API_KEY")
+    if not api_key:
+        return jsonify({"error": "API key not configured"}), 500
+
+    country_code = country_code.upper()  # 🔑 CLAVE
+
+    url = "https://app.ticketmaster.com/discovery/v2/events.json"
+    params = {
+        "apikey": api_key,
+        "countryCode": country_code,
+        "classificationName": "music",
+        "size": 20
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "_embedded" not in data:
+        return jsonify([]), 200
+
+    events = []
+    for event in data["_embedded"]["events"]:
+        events.append({
+            "id": event.get("id"),
+            "name": event.get("name"),
+            "date": event.get("dates", {}).get("start", {}).get("localDate"),
+            "image": event.get("images", [{}])[0].get("url")
+        })
+
+    return jsonify(events), 200
+
+@api.route("/events/highlights", methods=["GET"])
+def get_highlight_events():
+    import os
+    import requests
+
+    api_key = os.getenv("TICKETMASTER_API_KEY")
+
+    if not api_key:
+        return jsonify([]), 200
+
+    url = "https://app.ticketmaster.com/discovery/v2/events.json"
+
+    params = {
+        "apikey": api_key,
+        "classificationName": "music",
+        "size": 12
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        return jsonify([]), 200
+
+    data = response.json()
+
+    if "_embedded" not in data:
+        return jsonify([]), 200
+
+    events = []
+
+    for event in data["_embedded"]["events"]:
+        events.append({
+            "id": event.get("id"),
+            "name": event.get("name"),
+            "date": event.get("dates", {}).get("start", {}).get("localDate"),
+            "image": event.get("images", [{}])[0].get("url"),
+            "country": event.get("_embedded", {})
+                .get("venues", [{}])[0]
+                .get("country", {})
+                .get("countryCode")
+        })
+
+    return jsonify(events), 200
 @api.route('/update-country', methods=['POST'])
 @jwt_required()
 def update_country():
