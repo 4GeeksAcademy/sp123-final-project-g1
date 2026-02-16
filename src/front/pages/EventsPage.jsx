@@ -89,7 +89,12 @@ export const EventsPage = () => {
         return res.json();
       })
       .then((data) => {
-        setEvents(data);
+        // mapeamos los eventos para asegurarnos que cada uno tenga la URL de Ticketmaster
+        const mapped = data.map((event) => ({
+          ...event,
+          url: event.url || `https://www.ticketmaster.com/search?q=${encodeURIComponent(event.name)}`
+        }));
+        setEvents(mapped);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -107,7 +112,12 @@ export const EventsPage = () => {
 
       <ul className="events-grid">
         {events.map((event) => (
-          <li key={event.id} className="event-card">
+          <li
+            key={event.id}
+            className="event-card"
+            onClick={() => window.open(event.url, "_blank")}
+            style={{ cursor: "pointer" }}
+          >
             {event.image && (
               <div className="event-image-wrapper">
                 <img

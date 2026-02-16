@@ -10,11 +10,6 @@ export const MusicMap = () => {
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-    if (!mapboxgl.accessToken) {
-      console.error("❌ Mapbox token not found. Check your .env file");
-      return;
-    }
-
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/guerrero1599/cmkybpiam000301qw3a4herym",
@@ -28,9 +23,24 @@ export const MusicMap = () => {
     map.on("load", () => {
       addCountryLayer(map);
       addMapInteractions(map);
+
+      // 🔑 Ajuste inicial tras load
+      map.resize();
     });
 
-    return () => map.remove();
+    // 🔑 OBSERVA cambios reales de tamaño del contenedor
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapRef.current) {
+        mapRef.current.resize();
+      }
+    });
+
+    resizeObserver.observe(mapContainer.current);
+
+    return () => {
+      resizeObserver.disconnect();
+      map.remove();
+    };
   }, []);
 
   const addCountryLayer = (map) => {
@@ -59,7 +69,6 @@ export const MusicMap = () => {
   const addMapInteractions = (map) => {
     let hoveredCountryId = null;
 
-    // Hover
     map.on("mousemove", "country-fill", (e) => {
       map.getCanvas().style.cursor = "pointer";
 
@@ -103,12 +112,10 @@ export const MusicMap = () => {
       hoveredCountryId = null;
     });
 
-    // Click
     map.on("click", "country-fill", (e) => {
       const countryCode =
         e.features[0].properties.iso_3166_1_alpha_3;
 
-      // city = "all" por ahora
       navigate(`/region/${countryCode}/all`);
     });
   };
