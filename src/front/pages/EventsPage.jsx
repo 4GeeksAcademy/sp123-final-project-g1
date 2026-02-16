@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import "../styles/EventsPage.css";
 
 const countryMap = {
-  // Europa
   ESP: "ES",
   ITA: "IT",
   FRA: "FR",
@@ -41,7 +41,6 @@ const countryMap = {
   MLT: "MT",
   UKR: "UA",
 
-  // América
   USA: "US",
   CAN: "CA",
   MEX: "MX",
@@ -55,69 +54,28 @@ const countryMap = {
   VEN: "VE",
   URY: "UY",
   PRY: "PY",
-  PAN: "PA",
-  CRI: "CR",
-  GTM: "GT",
-  SLV: "SV",
-  HND: "HN",
-  NIC: "NI",
-  CUB: "CU",
-  DOM: "DO",
-  HTI: "HT",
-  JAM: "JM",
 
-  // Asia
   JPN: "JP",
   CHN: "CN",
   KOR: "KR",
   IND: "IN",
-  IDN: "ID",
-  THA: "TH",
-  VNM: "VN",
-  PHL: "PH",
-  MYS: "MY",
-  SGP: "SG",
-  PAK: "PK",
-  BGD: "BD",
-  LKA: "LK",
-  NPL: "NP",
-  KAZ: "KZ",
-  UZB: "UZ",
-  ISR: "IL",
-  SAU: "SA",
-  ARE: "AE",
-  QAT: "QA",
-  KWT: "KW",
-  OMN: "OM",
 
-  // África
   ZAF: "ZA",
   MAR: "MA",
   DZA: "DZ",
   TUN: "TN",
   EGY: "EG",
-  NGA: "NG",
-  GHA: "GH",
-  KEN: "KE",
-  ETH: "ET",
-  TZA: "TZ",
-  UGA: "UG",
-  SEN: "SN",
-  CIV: "CI",
-  CMR: "CM",
 
-  // Oceanía
   AUS: "AU",
-  NZL: "NZ",
-  FJI: "FJ",
-  PNG: "PG"
+  NZL: "NZ"
 };
 
 export const EventsPage = () => {
   const { country } = useParams();
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-  const countryCode = countryMap[country?.toLowerCase()] || country?.toUpperCase();
+  const countryCode =
+    countryMap[country?.toUpperCase()] || country?.toUpperCase();
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,34 +84,47 @@ export const EventsPage = () => {
     if (!backendUrl || !countryCode) return;
 
     fetch(`${backendUrl}/api/events/${countryCode}`)
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error("Error backend");
         return res.json();
       })
-      .then(data => {
+      .then((data) => {
         setEvents(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [countryCode, backendUrl]);
 
-  if (loading) return <p>Cargando eventos...</p>;
+  if (loading) return <p className="text-center mt-4">Cargando eventos...</p>;
 
   return (
-    <div className="container mt-4">
-      <h2>Eventos en {countryCode}</h2>
+    <div className="container events-page">
+      <h2 className="mb-4 text-center">Eventos en {countryCode}</h2>
 
-      {events.length === 0 && <p>No hay eventos disponibles</p>}
+      {events.length === 0 && (
+        <p className="text-center">No hay eventos disponibles</p>
+      )}
 
-      {events.map(event => (
-        <div key={event.id} className="mb-4">
-          <h5>{event.name}</h5>
-          <small>{event.date}</small>
-          {event.image && (
-            <img src={event.image} style={{ width: "100%" }} />
-          )}
-        </div>
-      ))}
+      <ul className="events-grid">
+        {events.map((event) => (
+          <li key={event.id} className="event-card">
+            {event.image && (
+              <div className="event-image-wrapper">
+                <img
+                  src={event.image}
+                  alt={event.name}
+                  className="event-image"
+                />
+              </div>
+            )}
+
+            <div className="event-info">
+              <h5 className="event-title">{event.name}</h5>
+              <p className="event-date">{event.date}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
