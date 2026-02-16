@@ -3,7 +3,8 @@ import { useAuth } from "../context/AuthContext";
 import logo from "../assets/img/logo.jpg";
 
 export const Navbar = () => {
-	const { user } = useAuth();
+
+  const { user, logout } = useAuth();
 
 	return (
 		<nav

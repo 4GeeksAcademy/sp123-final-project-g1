@@ -6,18 +6,23 @@ import requests
 from flask import Flask, request, jsonify, url_for, Blueprint
 from src.api.utils import generate_sitemap, APIException
 from flask_cors import CORS
-from src.api.models import db, Users, People, Genre, GenrePeople, Bands, GenreBands, Instruments, InstrumentPeople
+from src.api.models import db, Users, People, Genre, GenrePeople, Bands, GenreBands, Instruments, InstrumentPeople, Multimedia
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import get_jwt
+import cloudinary
+import cloudinary.uploader
+
 
 api = Blueprint('api', __name__)
 CORS(api)  # Allow CORS requests to this API
 
 
-@api.route('/login', methods=['POST'])
+@api.route('/login', methods=['POST', 'OPTIONS'])
 def login():
+    if request.method == "OPTIONS":
+        return jsonify({"ok": True}), 200
     body = request.get_json()
     email = body.get("email")
     password = body.get("password")
@@ -26,11 +31,10 @@ def login():
     user = Users.query.filter_by(email=email).first()
     if not user or user.password != password:
         return jsonify({"msg": "Credenciales inválidas"}), 401
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
     people = People.query.filter_by(user_id=user.id).first()
     response_body = {"token": access_token, "user": user.serialize(
     ), "people": people.serialize() if people else None}
-
     return jsonify(response_body), 200
 
 
@@ -83,41 +87,31 @@ def signup():
                     is_fan=True)
     db.session.add(people)
     db.session.commit()
-
     return jsonify({"message": "Usuario creado correctamente", "user": user.serialize(), "people": people.serialize()}), 201
 
 
 @api.route("/profile", methods=["GET"])
 @jwt_required()
 def profile():
-    claims = get_jwt()
-    user_id = claims["user_id"]
-
+    user_id = int(get_jwt_identity())
     user = Users.query.get(user_id)
     if not user:
         return jsonify({"msg": "User not found"}), 404
-
     return jsonify(user.serialize()), 200
 
 
 @api.route("/profile", methods=["PUT"])
 @jwt_required()
 def update_profile():
-    claims = get_jwt()
-    user_id = claims["user_id"]
-
+    user_id = int(get_jwt_identity())
     user = Users.query.get(user_id)
     if not user:
         return jsonify({"msg": "User not found"}), 404
-
     data = request.get_json()
-
     user.alias = data.get("alias", user.alias)
     user.background = data.get("background", user.background)
     user.theme = data.get("theme", user.theme)
-
     db.session.commit()
-
     return jsonify(user.serialize()), 200
 
 
@@ -146,7 +140,6 @@ def users():
         db.session.commit()
         response_body['results'] = row.serialize()
         response_body['message'] = "User created"
-
         return response_body, 201
 
 
@@ -181,7 +174,6 @@ def user(user_id):
         db.session.delete(row)
         db.session.commit()
         response_body['message'] = f"User {user_id} deleted"
-
         return response_body, 200
 
 
@@ -199,7 +191,6 @@ def people():
         db.session.commit()
         response_body['results'] = row.serialize()
         response_body['message'] = "Created succesfully"
-
         return response_body, 201
 
 
@@ -227,7 +218,6 @@ def person(people_id):
         db.session.delete(row)
         db.session.commit()
         response_body['message'] = f"User {people_id} deleted"
-
         return response_body, 200
 
 
@@ -245,7 +235,6 @@ def genres():
         db.session.commit()
         response_body['results'] = row.serialize()
         response_body['message'] = "Genre created"
-
         return response_body, 201
 
 
@@ -271,7 +260,6 @@ def genre(genre_id):
         db.session.delete(row)
         db.session.commit()
         response_body['message'] = f"Genre {genre_id} deleted"
-
         return response_body, 200
 
 
@@ -289,7 +277,6 @@ def genre_people():
         db.session.commit()
         response_body['results'] = row.serialize()
         response_body['message'] = "Link created"
-
         return response_body, 201
 
 
@@ -305,7 +292,6 @@ def genre_people_item(item_id):
     db.session.delete(row)
     db.session.commit()
     response_body['message'] = f"Link {item_id} deleted"
-
     return response_body, 200
 
 
@@ -323,7 +309,6 @@ def bands():
         db.session.commit()
         response_body['results'] = row.serialize()
         response_body['message'] = "Band Created"
-
         return response_body, 201
 
 
@@ -351,7 +336,6 @@ def band(band_id):
         db.session.delete(row)
         db.session.commit()
         response_body['message'] = f"Band {band_id} deleted"
-
         return response_body, 200
 
 
@@ -369,7 +353,6 @@ def genre_bands():
         db.session.commit()
         response_body['results'] = row.serialize()
         response_body['message'] = "Link Created"
-
         return response_body, 201
 
 
@@ -385,7 +368,6 @@ def genre_bands_item(item_id):
     db.session.delete(row)
     db.session.commit()
     response_body['message'] = f"Link {item_id} deleted"
-
     return response_body, 200
 
 
@@ -403,7 +385,6 @@ def instruments():
         db.session.commit()
         response_body['results'] = row.serialize()
         response_body['message'] = "Instrument created"
-
         return response_body, 201
 
 
@@ -419,7 +400,6 @@ def instrument(instrument_id):
     db.session.delete(row)
     db.session.commit()
     response_body['message'] = f"Instrument {instrument_id} deleted"
-
     return response_body, 200
 
 
@@ -437,7 +417,6 @@ def instrument_people():
         db.session.commit()
         response_body['results'] = row.serialize()
         response_body['message'] = "Link created"
-
         return response_body, 201
 
 
@@ -453,7 +432,6 @@ def instrument_people_item(item_id):
     db.session.delete(row)
     db.session.commit()
     response_body['message'] = f"Link {item_id} deleted"
-
     return response_body, 200
 
 
@@ -494,45 +472,36 @@ def map_people():
 @api.route("/update-background", methods=["POST"])
 @jwt_required()
 def update_background():
-    user_id = get_jwt()["user_id"]
+    user_id = int(get_jwt_identity())
     user = Users.query.get(user_id)
     color = request.json.get("color")
-    allowed_colors = ["#0F3D0F",
-                      "#0A1A3D",
-                      "#3D0A0A",
-                      "#3D3200",
-                      "#2A0F3D",
-                      "#3D1F0A",
-                      "#3D0A2A",
-                      "#1A1A1A"
-                      ]
+    allowed_colors = ["#0F3D0F", "#0A1A3D", "#3D0A0A",
+                      "#3D3200", "#2A0F3D", "#3D1F0A", "#3D0A2A", "#1A1A1A"]
     if color not in allowed_colors:
         return jsonify({"message": "Color no permitido"}), 400
     user.background = color
     db.session.commit()
-
     return jsonify({"user": user.serialize()}), 200
 
 
 @api.route("/update-theme", methods=["POST"])
 @jwt_required()
 def update_theme():
-    user_id = get_jwt()["user_id"]
+    user_id = int(get_jwt_identity())
     user = Users.query.get(user_id)
     theme = request.json.get("theme")
-    allowed = ["dark", "neon", "sunset"]
+    allowed = ["dark", "neon", "sunset", "sonora", "ocean", "pastel"]
     if theme not in allowed:
         return jsonify({"message": "Tema no permitido"}), 400
     user.theme = theme
     db.session.commit()
-
     return jsonify({"user": user.serialize()}), 200
 
 
 @api.route("/update-photo", methods=["POST"])
 @jwt_required()
 def update_photo():
-    user_id = get_jwt()["user_id"]
+    user_id = int(get_jwt_identity())
     user = Users.query.get(user_id)
     if "photo" not in request.files:
         return jsonify({"message": "No se envió ninguna imagen"}), 400
@@ -542,17 +511,15 @@ def update_photo():
     photo.save(filepath)
     user.photo_url = f"/static/profile_photos/{filename}"
     db.session.commit()
-
     return jsonify({"user": user.serialize()}), 200
 
 
 @api.route('/update-bio', methods=['POST'])
 @jwt_required()
 def update_bio():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     body = request.get_json()
     bio = body.get("bio", "")
-
     people = People.query.filter_by(user_id=user_id).first()
     if not people:
         return jsonify({"msg": "Perfil no encontrado"}), 404
@@ -569,14 +536,13 @@ def public_profile(alias):
     people = People.query.filter_by(user_id=user.id).first()
     if not people:
         return jsonify({"msg": "Perfil no encontrado"}), 404
-
     return jsonify({"user": user.serialize(), "people": people.serialize()}), 200
 
 
 @api.route('/update-instruments', methods=['POST'])
 @jwt_required()
 def update_instruments():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     body = request.get_json()
     instruments = body.get("instruments", [])
     people = People.query.filter_by(user_id=user_id).first()
@@ -584,18 +550,16 @@ def update_instruments():
         return jsonify({"msg": "Perfil no encontrado"}), 404
     InstrumentPeople.query.filter_by(people_id=people.id).delete()
     for inst in instruments:
-        new_inst = InstrumentPeople(
-            people_id=people.id, instrument_id=inst["instrument_id"], level=inst["level"])
+        new_inst = InstrumentPeople(people_id=people.id, instrument_id=inst["instrument_id"], level=inst["level"], comment=inst.get("comment"))
         db.session.add(new_inst)
     db.session.commit()
-
     return jsonify({"msg": "Instrumentos actualizados", "people": people.serialize()}), 200
 
 
 @api.route('/update-roles', methods=['POST'])
 @jwt_required()
 def update_roles():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     body = request.get_json()
     people = People.query.filter_by(user_id=user_id).first()
     if not people:
@@ -606,7 +570,6 @@ def update_roles():
         if role in body:
             setattr(people, role, body[role])
     db.session.commit()
-
     return jsonify({"msg": "Roles actualizados", "people": people.serialize()}), 200
 
 
@@ -619,7 +582,6 @@ def seed_instruments():
         if not exists:
             db.session.add(Instruments(name=name))
     db.session.commit()
-
     return jsonify({"message": "Instruments seeded"}), 200
 
 
@@ -638,22 +600,66 @@ def check_email(email):
 @api.route("/profile/song", methods=["PUT"])
 @jwt_required()
 def update_profile_song():
-    claims = get_jwt()
-    user_id = claims["user_id"]
-
+    user_id = int(get_jwt_identity())
     user = Users.query.get(user_id)
     if not user:
         return jsonify({"msg": "User not found"}), 404
-
     data = request.get_json()
     song_url = data.get("song_url")
-
     if not song_url:
         return jsonify({"msg": "song_url is required"}), 400
-
     user.song_url = song_url
     db.session.commit()
+    return jsonify(user.serialize()), 200
 
+
+@api.route("/upload-multimedia", methods=["POST", "OPTIONS"])
+@jwt_required()
+def upload_multimedia():
+    if request.method == "OPTIONS":
+        response = jsonify({"message": "ok"})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        return response
+    user_id = get_jwt_identity()
+    user = Users.query.get(user_id)
+    if "file" not in request.files:
+        response = jsonify({"error": "No file provided"})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 400
+    file = request.files["file"]
+    upload_result = cloudinary.uploader.upload(file, resource_type="auto")
+    url = upload_result.get("secure_url")
+    file_type = upload_result.get("resource_type")
+    new_media = Multimedia(user_id=user.id, url=url, type=file_type)
+    db.session.add(new_media)
+    db.session.commit()
+    response = jsonify(new_media.serialize())
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response, 200
+
+
+@api.route("/multimedia/<int:id>", methods=["DELETE"])
+@jwt_required()
+def delete_multimedia(id):
+    media = Multimedia.query.get(id)
+    if not media:
+        return jsonify({"error": "Not found"}), 404
+    db.session.delete(media)
+    db.session.commit()
+    return jsonify({"message": "deleted"}), 200
+
+
+@api.route("/profile/youtube", methods=["PUT"])
+@jwt_required()
+def update_youtube():
+    user_id = int(get_jwt_identity())
+    user = Users.query.get(user_id)
+    data = request.get_json()
+    youtube_url = data.get("youtube_url")
+    user.youtube_url = youtube_url
+    db.session.commit()
     return jsonify(user.serialize()), 200
 
 
@@ -737,3 +743,23 @@ def get_highlight_events():
         })
 
     return jsonify(events), 200
+@api.route('/update-country', methods=['POST'])
+@jwt_required()
+def update_country():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    user = Users.query.get(user_id)
+    user.country = data.get("country")
+    db.session.commit()
+    return jsonify({"user": user.serialize()}), 200
+
+
+@api.route('/update-city', methods=['POST'])
+@jwt_required()
+def update_city():
+    user_id = get_jwt_identity()
+    user = Users.query.get(user_id)
+    data = request.get_json()
+    user.city = data.get("city")
+    db.session.commit()
+    return jsonify({"user": user.serialize()}), 200
