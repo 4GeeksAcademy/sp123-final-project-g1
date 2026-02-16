@@ -25,7 +25,7 @@ class Users(db.Model):
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     multimedia = db.relationship("Multimedia", backref="user", lazy=True)
     theme = db.Column(db.String(20), default="dark")
-    youtube_url = db.Column(db.String(500))
+    # youtube_url = db.Column(db.String(500))
 
     def __repr__(self):
         return f'<User {self.id} - {self.email}>'
@@ -43,8 +43,8 @@ class Users(db.Model):
                 "city": self.city,
                 "is_active": self.is_active,
                 "theme": self.theme,
-                "is_admin": self.is_admin,
-                "youtube_url": getattr(self, "youtube_url", None),}
+                "is_admin": self.is_admin}
+                # "youtube_url": self.youtube_url
 
 
 class People(db.Model):
