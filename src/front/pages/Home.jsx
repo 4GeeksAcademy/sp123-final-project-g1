@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { MusicMap } from "../components/MusicMap.jsx";
+import { HomePage } from "./HomePage.jsx";
 import "../styles/RegionPage.css";
 
 export const Home = () => {
@@ -32,9 +33,8 @@ export const Home = () => {
 
   return (
     <div className="container mt-5">
-      {/* MAPA */}
       <section className="region-page">
-        <MusicMap />
+        <HomePage />
       </section>
     </div>
   );

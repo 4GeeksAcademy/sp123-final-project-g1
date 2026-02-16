@@ -167,20 +167,25 @@ def user(user_id):
 
 @api.route('/people', methods=['GET', 'POST'])
 def people():
-    response_body = {}
+
     if request.method == 'GET':
-        rows = People.query.all()
-        response_body['results'] = [r.serialize() for r in rows]
-        response_body['message'] = "List of people"
-        return response_body, 200
+        country = request.args.get("country")
+
+        query = People.query
+
+        if country:
+            query = query.join(Users).filter(Users.country == country)
+
+        rows = query.all()
+
+        return jsonify([r.serialize() for r in rows]), 200
+
     if request.method == 'POST':
         row = People(**request.json)
         db.session.add(row)
         db.session.commit()
-        response_body['results'] = row.serialize()
-        response_body['message'] = "Created succesfully"
 
-        return response_body, 201
+        return jsonify(row.serialize()), 201
 
 
 @api.route('/people/<int:people_id>', methods=['GET', 'PUT', 'DELETE'])

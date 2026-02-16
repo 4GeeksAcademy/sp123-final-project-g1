@@ -8,120 +8,79 @@ export const MusicMap = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
     if (!mapboxgl.accessToken) {
-      console.error("❌ Mapbox token not found. Check your .env file");
-      return;
-    }
+      console.error(" Mapbox token not found. Check your .env file");
+      return;}
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/guerrero1599/cmkybpiam000301qw3a4herym",
       center: [0, 20],
-      zoom: 2,
-    });
-
+      zoom: 2,});
     mapRef.current = map;
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
-
     map.on("load", () => {
       addCountryLayer(map);
-      addMapInteractions(map);
-    });
-
+      addMapInteractions(map);});
     return () => map.remove();
   }, []);
 
   const addCountryLayer = (map) => {
     map.addSource("countries", {
       type: "vector",
-      url: "mapbox://mapbox.country-boundaries-v1",
-    });
-
+      url: "mapbox://mapbox.country-boundaries-v1",});
     map.addLayer({
       id: "country-fill",
       type: "fill",
-      source: "countries",
-      "source-layer": "country_boundaries",
-      paint: {
-        "fill-color": "#4cc9f0",
-        "fill-opacity": [
-          "case",
-          ["boolean", ["feature-state", "hover"], false],
-          0.4,
-          0,
-        ],
-      },
-    });
-  };
+      source: "countries", "source-layer": "country_boundaries",
+      paint: {"fill-color": "#4CC9F0",
+              "fill-opacity": [
+              "case",
+              ["boolean", ["feature-state", "hover"], false],0.4,0,],
+      },});
+    };
 
   const addMapInteractions = (map) => {
     let hoveredCountryId = null;
 
-    // Hover
     map.on("mousemove", "country-fill", (e) => {
       map.getCanvas().style.cursor = "pointer";
 
       if (hoveredCountryId !== null) {
         map.setFeatureState(
-          {
-            source: "countries",
-            sourceLayer: "country_boundaries",
-            id: hoveredCountryId,
-          },
+          {source: "countries",
+           sourceLayer: "country_boundaries",
+           id: hoveredCountryId,},
           { hover: false }
-        );
-      }
-
+        );}
       hoveredCountryId = e.features[0].id;
-
       map.setFeatureState(
-        {
-          source: "countries",
-          sourceLayer: "country_boundaries",
-          id: hoveredCountryId,
-        },
+        {source: "countries",
+         sourceLayer: "country_boundaries",
+         id: hoveredCountryId,},
         { hover: true }
-      );
-    });
-
+      );});
     map.on("mouseleave", "country-fill", () => {
       map.getCanvas().style.cursor = "";
-
       if (hoveredCountryId !== null) {
         map.setFeatureState(
-          {
-            source: "countries",
-            sourceLayer: "country_boundaries",
-            id: hoveredCountryId,
-          },
+          {source: "countries",
+           sourceLayer: "country_boundaries",
+           id: hoveredCountryId,},
           { hover: false }
-        );
-      }
-
+        );}
       hoveredCountryId = null;
     });
-
-    // Click
+    // NAVEGACION DE PAIS => (REGION PAGE)
     map.on("click", "country-fill", (e) => {
-      const countryCode =
-        e.features[0].properties.iso_3166_1_alpha_3;
-
-      // city = "all" por ahora
-      navigate(`/region/${countryCode}/all`);
+      const countryCode = e.features[0].properties.iso_3166_1_alpha_3;
+      navigate(`/region/${countryCode}`);
     });
   };
-
   return (
-    <div
-      ref={mapContainer}
-      style={{
-        width: "100%",
-        height: "800px",
-        borderRadius: "12px",
-        overflow: "hidden",
-      }}
-    />
+    <div ref={mapContainer} style={{width: "100%", height: "800px", borderRadius: "12px", overflow: "hidden",}}/>
   );
 };
