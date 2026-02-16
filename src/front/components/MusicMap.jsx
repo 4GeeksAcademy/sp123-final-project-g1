@@ -24,8 +24,25 @@ export const MusicMap = () => {
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
     map.on("load", () => {
       addCountryLayer(map);
-      addMapInteractions(map);});
-    return () => map.remove();
+      addMapInteractions(map);
+
+      // 🔑 Ajuste inicial tras load
+      map.resize();
+    });
+
+    // 🔑 OBSERVA cambios reales de tamaño del contenedor
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapRef.current) {
+        mapRef.current.resize();
+      }
+    });
+
+    resizeObserver.observe(mapContainer.current);
+
+    return () => {
+      resizeObserver.disconnect();
+      map.remove();
+    };
   }, []);
 
   const addCountryLayer = (map) => {
@@ -74,10 +91,12 @@ export const MusicMap = () => {
         );}
       hoveredCountryId = null;
     });
-    // NAVEGACION DE PAIS => (REGION PAGE)
+
     map.on("click", "country-fill", (e) => {
-      const countryCode = e.features[0].properties.iso_3166_1_alpha_3;
-      navigate(`/region/${countryCode}`);
+      const countryCode =
+        e.features[0].properties.iso_3166_1_alpha_3;
+
+      navigate(`/region/${countryCode}/all`);
     });
   };
   return (

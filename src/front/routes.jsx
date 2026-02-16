@@ -14,6 +14,8 @@ import { ProtectedRoute } from "./context/ProtectedRoute";
 import { PublicProfile } from "./pages/PublicProfile.jsx";
 import { RegionPage } from "./pages/RegionPage.jsx";
 import { About } from "./pages/About.jsx";
+import { MusicBank } from "./pages/MusicBank";
+import { EventsPage } from "./pages/EventsPage";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -27,20 +29,10 @@ export const router = createBrowserRouter(
 
       {/* PERFIL PÚBLICO */}
       <Route path="/public-profile/:alias" element={<PublicProfile />} />
-
-      {/* PERFIL PRIVADO */}
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* REGIÓN / PAÍS */}
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/music-bank" element={<ProtectedRoute><MusicBank /></ProtectedRoute>} />
       <Route path="/region/:country" element={<RegionPage />} />
-
+      <Route path="/region/:country/events" element={<EventsPage />} />
     </Route>
   )
 );
