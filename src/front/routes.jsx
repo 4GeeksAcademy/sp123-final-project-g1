@@ -16,6 +16,8 @@ import { RegionPage } from "./pages/RegionPage";
 import { MusicBank } from "./pages/MusicBank";
 import { EventsPage } from "./pages/EventsPage";
 
+
+
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
@@ -29,6 +31,7 @@ export const router = createBrowserRouter(
       <Route path="/music-bank" element={<ProtectedRoute><MusicBank /></ProtectedRoute>} />
       <Route path="/region/:country" element={<RegionPage />} />
       <Route path="/region/:country/events" element={<EventsPage />} />
+
     </Route>
   )
 );
