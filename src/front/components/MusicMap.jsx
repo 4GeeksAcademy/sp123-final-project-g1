@@ -116,7 +116,7 @@ export const MusicMap = () => {
       const countryCode =
         e.features[0].properties.iso_3166_1_alpha_3;
 
-      navigate(`/region/${countryCode}/all`);
+      navigate(`/region/${countryCode}`);
     });
   };
 
